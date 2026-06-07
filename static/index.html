@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>MilkRoute</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0a1a0f;--bg2:#0f2317;--bg3:#122b1a;--card:#152e1d;--card2:#1a3823;
+  --green:#22c55e;--green2:#16a34a;--green3:#15803d;--greendim:#1a3823;
+  --text:#e8f5eb;--text2:#a3c9a8;--text3:#5a8c60;
+  --red:#ef4444;--amber:#f59e0b;--border:#1f4028;--radius:14px;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh;}
+.app{max-width:420px;margin:0 auto;min-height:100vh;position:relative;}
+.screen{display:none;padding-bottom:76px;}.screen.active{display:block;}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:var(--bg2);border-top:1px solid var(--border);display:flex;z-index:100;}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 8px;cursor:pointer;color:var(--text3);font-size:11px;border:none;background:none;font-family:inherit;}
+.nav-tab.active{color:var(--green);}
+.nav-tab i{font-size:22px;}
+.header{background:var(--bg2);padding:16px 16px 18px;position:sticky;top:0;z-index:50;}
+.card{background:var(--card);border-radius:var(--radius);padding:14px;border:1px solid var(--border);margin-bottom:12px;}
+.card2{background:var(--card2);border-radius:10px;padding:10px;}
+.stat-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
+.stat-box{background:var(--card2);border-radius:10px;padding:10px 6px;text-align:center;}
+.stat-val{font-size:14px;font-weight:600;}
+.stat-lbl{font-size:9px;color:var(--text3);margin-top:2px;}
+.prod-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);}
+.prod-row:last-child{border-bottom:none;}
+.prod-icon{width:44px;height:44px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.prod-info{flex:1;min-width:0;}
+.prod-name{font-size:13px;font-weight:500;}
+.prod-sub{font-size:11px;color:var(--text3);}
+.qty-ctrl{display:flex;align-items:center;gap:5px;}
+.qty-btn{width:30px;height:30px;border-radius:7px;background:var(--bg);border:1px solid var(--border);color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;}
+.qty-val{min-width:36px;height:30px;border-radius:7px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;}
+.wants-btn{background:var(--green3);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:inherit;}
+.pill{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;}
+.pill-green{background:#0d3320;color:var(--green);}
+.pill-amber{background:#2a1f00;color:var(--amber);}
+.pill-red{background:#2a0d0d;color:var(--red);}
+.pill-gray{background:var(--card2);color:var(--text3);}
+.toggle{width:44px;height:24px;border-radius:12px;position:relative;cursor:pointer;border:none;}
+.toggle.on{background:var(--green);}
+.toggle.off{background:var(--border);}
+.toggle::after{content:'';width:18px;height:18px;background:#fff;border-radius:50%;position:absolute;top:3px;transition:.2s;}
+.toggle.on::after{right:3px;left:auto;}
+.toggle.off::after{left:3px;right:auto;}
+.skip-opt{flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;}
+.skip-opt.active{background:var(--greendim);border-color:var(--green);color:var(--green);}
+.del-choice{flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;font-family:inherit;}
+.del-choice.active{background:var(--greendim);border-color:var(--green);color:var(--green);}
+.row-link{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.row-link:last-child{border-bottom:none;}
+.row-link-left{display:flex;align-items:center;gap:10px;color:var(--text2);}
+.row-link-left i{font-size:17px;color:var(--green);width:20px;}
+.pay-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.pay-cal-hdr{font-size:9px;color:var(--text3);text-align:center;padding:3px 0;font-weight:500;}
+.pay-cell{border-radius:5px;text-align:center;font-size:9px;font-weight:500;padding:3px 0;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.pc-1l{background:#1a3823;color:var(--green);}
+.pc-15l{background:#225c2e;color:#7effa0;}
+.pc-05l{background:#0f2317;color:#5db87a;}
+.pc-skip{background:var(--bg);color:var(--text3);}
+.pc-empty{background:transparent;}
+.form-group{margin-bottom:12px;}
+.form-label{font-size:11px;color:var(--text3);margin-bottom:5px;display:block;}
+.form-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
+.form-input:focus{border-color:var(--green3);}
+.btn-primary{width:100%;background:var(--green);color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;}
+.btn-primary:disabled{opacity:.7;cursor:default;}
+.btn-danger{width:100%;background:var(--red);color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:9px 14px;font-size:12px;cursor:pointer;font-family:inherit;}
+.steps{display:flex;align-items:center;margin-bottom:20px;}
+.step-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.s-done{background:var(--green);color:#fff;}
+.s-active{background:var(--green);color:#fff;box-shadow:0 0 0 4px rgba(34,197,94,.2);}
+.s-todo{background:var(--border);color:var(--text3);}
+.step-line{flex:1;height:2px;}
+.sl-done{background:var(--green);}
+.sl-todo{background:var(--border);}
+.co-chip{display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer;margin-bottom:8px;}
+.co-chip.sel{border-color:var(--green);background:var(--greendim);}
+.co-logo{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;flex-direction:column;justify-content:flex-end;}
+.sheet{background:var(--bg2);border-radius:20px 20px 0 0;padding:20px;max-height:85vh;overflow-y:auto;}
+.avatar{width:54px;height:54px;border-radius:50%;background:var(--green3);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.auth-screen{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:32px 20px;}
+.auth-logo{text-align:center;margin-bottom:32px;}
+.auth-logo-icon{width:64px;height:64px;border-radius:20px;background:var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;}
+.tab-row{display:flex;background:var(--card);border-radius:10px;padding:3px;margin-bottom:20px;}
+.tab-btn{flex:1;padding:9px;border-radius:7px;border:none;background:transparent;color:var(--text3);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;}
+.tab-btn.active{background:var(--green);color:#fff;}
+.notif-btn{width:38px;height:38px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;border:none;}
+.notif-dot{width:8px;height:8px;background:var(--red);border-radius:50%;position:absolute;top:7px;right:7px;}
+.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);padding:10px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;display:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+.loader{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.sec-title{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;}
+.divider{height:1px;background:var(--border);margin:12px 0;}
+.text-green{color:var(--green);}.text-red{color:var(--red);}.text-amber{color:var(--amber);}.text-muted{color:var(--text3);}.fw6{font-weight:600;}
+.flex-between{display:flex;justify-content:space-between;align-items:center;}
+.flex-center{display:flex;align-items:center;}
+.gap8{gap:8px;}.gap12{gap:12px;}
+.mb8{margin-bottom:8px;}.mb12{margin-bottom:12px;}.mb16{margin-bottom:16px;}.mb20{margin-bottom:20px;}
+.p16{padding:0 16px;}
+.info-banner{background:var(--greendim);border-radius:8px;padding:9px 11px;font-size:11px;color:var(--green);}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<!-- AUTH -->
+<div id="auth-root">
+  <div class="auth-screen">
+    <div class="auth-logo">
+      <div class="auth-logo-icon"><i class="ti ti-droplet" style="font-size:28px;color:#fff;"></i></div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;">MilkRoute</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:4px;">Fresh dairy, delivered daily</div>
+    </div>
+    <!-- Demo credentials hint -->
+    <div style="background:var(--greendim);border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:12px;">
+      <div style="font-weight:600;color:var(--green);margin-bottom:4px;"><i class="ti ti-info-circle" style="vertical-align:-2px;"></i> Demo Accounts</div>
+      <div style="color:var(--text2);">Customer: <span style="color:var(--text);">rahul@demo.com</span> / <span style="color:var(--text);">demo123</span></div>
+      <div style="color:var(--text2);">Admin: <a href="/admin" style="color:var(--green);">Open Admin Panel →</a></div>
+    </div>
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchAuth('login')">Login</button>
+      <button class="tab-btn" onclick="switchAuth('signup')">Sign Up</button>
+    </div>
+    <div id="auth-login">
+      <div class="form-group"><label class="form-label">Email Address</label><input class="form-input" type="email" id="login-email" value="rahul@demo.com"></div>
+      <div class="form-group mb16"><label class="form-label">Password</label><input class="form-input" type="password" id="login-pass" value="demo123"></div>
+      <button class="btn-primary" id="login-btn" onclick="doLogin()"><i class="ti ti-login"></i> Login</button>
+      <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3);">No account? <span class="text-green" style="cursor:pointer;" onclick="switchAuth('signup')">Sign Up</span></p>
+    </div>
+    <div id="auth-signup" style="display:none;">
+      <p style="font-size:12px;color:var(--text3);margin-bottom:14px;">Create account in 5 steps.</p>
+      <button class="btn-primary" onclick="startRegister()"><i class="ti ti-user-plus"></i> Create Account</button>
+      <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3);">Have account? <span class="text-green" style="cursor:pointer;" onclick="switchAuth('login')">Login</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTER -->
+<div id="register-root" style="display:none;">
+  <div style="background:var(--bg2);padding:16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50;">
+    <button onclick="regBack()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;"><i class="ti ti-arrow-left"></i></button>
+    <div><div style="font-size:11px;color:var(--text3);" id="reg-step-label">Step 1 of 5</div><div style="font-size:15px;font-weight:600;" id="reg-step-title">Basic Details</div></div>
+  </div>
+  <div style="padding:16px;"><div class="steps" id="reg-steps-bar"></div><div id="reg-body"></div></div>
+</div>
+
+<!-- APP -->
+<div id="app-root" style="display:none;">
+  <div class="app">
+    <div id="screen-home" class="screen active"></div>
+    <div id="screen-mymilk" class="screen"></div>
+    <div id="screen-payments" class="screen"></div>
+    <div id="screen-profile" class="screen"></div>
+    <nav class="nav">
+      <button class="nav-tab active" onclick="goTab('home')" id="tab-home"><i class="ti ti-home"></i><span>Home</span></button>
+      <button class="nav-tab" onclick="goTab('mymilk')" id="tab-mymilk"><i class="ti ti-droplet"></i><span>My Milk</span></button>
+      <button class="nav-tab" onclick="goTab('payments')" id="tab-payments"><i class="ti ti-wallet"></i><span>Payments</span></button>
+      <button class="nav-tab" onclick="goTab('profile')" id="tab-profile"><i class="ti ti-user"></i><span>Profile</span></button>
+    </nav>
+  </div>
+</div>
+
+<script>
+var API_BASE = '';
+var state = { customer:null, homeData:null, notifToggles:{delivery:true,bill:true,payment:true,price:true}, regStep:1, regData:{companies:[],milks:[],pattern:'daily'} };
+
+var COMPANIES = [
+  {id:1,name:'Amul',tagline:'Goodness of pure milk',color:'#0066b2',icon:'🥛',products:[{id:1,name:'Amul Taaza',price:32},{id:2,name:'Amul Gold',price:67},{id:3,name:'Amul Cow Milk',price:60},{id:4,name:'Amul Slim & Trim',price:65}]},
+  {id:2,name:'Chitale',tagline:'Fresh & healthy dairy',color:'#e31837',icon:'🫙',products:[{id:5,name:'Chitale Buffalo',price:74},{id:6,name:'Chitale Cow Milk',price:64}]},
+  {id:3,name:'Gokul',tagline:'Pure by tradition',color:'#f97316',icon:'🐄',products:[{id:7,name:'Gokul Standard',price:28}]},
+  {id:4,name:'Govardhan',tagline:'Simply authentic',color:'#facc15',icon:'🧈',products:[{id:8,name:'Govardhan A2',price:80}]},
+];
+
+// ── Toast ────────────────────────────────────────────────
+function toast(msg,type='success'){
+  var t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=type==='error'?'var(--red)':type==='amber'?'var(--amber)':'var(--green)';
+  t.style.color='#fff';t.style.display='block';
+  setTimeout(()=>{t.style.display='none';},3000);
+}
+
+// ── API ──────────────────────────────────────────────────
+async function api(endpoint, action, data, method='GET'){
+  try{
+    var opts={method,headers:{'Content-Type':'application/json'},credentials:'include'};
+    if(method==='POST'&&data) opts.body=JSON.stringify(data);
+    var r=await fetch(`${API_BASE}/api/customer/${endpoint}?action=${action}`,opts);
+    return await r.json();
+  }catch(e){return{success:false,message:'Network error'};}
+}
+
+// ── Router ───────────────────────────────────────────────
+function showRoot(name){
+  ['auth','register','app'].forEach(n=>{
+    var el=document.getElementById(n+'-root');
+    if(el) el.style.display=n===name?'block':'none';
+  });
+}
+
+// ── Auth ─────────────────────────────────────────────────
+function switchAuth(tab){
+  document.getElementById('auth-login').style.display=tab==='login'?'block':'none';
+  document.getElementById('auth-signup').style.display=tab==='signup'?'block':'none';
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',(i===0&&tab==='login')||(i===1&&tab==='signup')));
+}
+
+async function doLogin(){
+  var email=document.getElementById('login-email').value.trim();
+  var pass=document.getElementById('login-pass').value;
+  if(!email||!pass){toast('Enter email and password','error');return;}
+  var btn=document.getElementById('login-btn');
+  btn.innerHTML='<span class="loader"></span>';btn.disabled=true;
+  var res=await api('auth','login',{email,password:pass},'POST');
+  btn.disabled=false;
+  if(res.success){state.customer=res.data;toast('Welcome back, '+res.data.name.split(' ')[0]+'!');launchApp();}
+  else{btn.innerHTML='<i class="ti ti-login"></i> Login';toast(res.message,'error');}
+}
+
+async function doLogout(){
+  await api('auth','logout',null,'POST');
+  state.customer=null;state.homeData=null;
+  showRoot('auth');switchAuth('login');toast('Logged out.');
+}
+
+// ── Register ──────────────────────────────────────────────
+function startRegister(){state.regStep=1;state.regData={companies:[],milks:[],pattern:'daily'};showRoot('register');renderRegStep();}
+
+function regBack(){if(state.regStep===1){showRoot('auth');}else{state.regStep--;renderRegStep();}}
+
+function renderStepsBar(){
+  var h='';
+  for(var i=1;i<=5;i++){
+    var cls=i<state.regStep?'s-done':i===state.regStep?'s-active':'s-todo';
+    h+=`<div class="step-dot ${cls}">${i<state.regStep?'<i class="ti ti-check" style="font-size:11px;"></i>':i}</div>`;
+    if(i<5) h+=`<div class="step-line ${i<state.regStep?'sl-done':'sl-todo'}"></div>`;
+  }
+  document.getElementById('reg-steps-bar').innerHTML=h;
+}
+
+function renderRegStep(){
+  var titles=['Basic Details','Select Milk Companies','Select Milk Types & Quantity','Delivery Pattern','Review & Confirm'];
+  document.getElementById('reg-step-label').textContent='Step '+state.regStep+' of 5';
+  document.getElementById('reg-step-title').textContent=titles[state.regStep-1];
+  renderStepsBar();
+  var b=document.getElementById('reg-body');
+  if(state.regStep===1){
+    b.innerHTML=`
+      <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="r-name" placeholder="e.g. Pranav Sharma"></div>
+      <div class="form-group"><label class="form-label">Mobile Number</label><input class="form-input" type="tel" id="r-mobile" placeholder="98765 43210"></div>
+      <div class="form-group"><label class="form-label">Email Address</label><input class="form-input" type="email" id="r-email" placeholder="you@email.com"></div>
+      <div class="form-group"><label class="form-label">Wing</label><input class="form-input" id="r-wing" placeholder="e.g. A Wing"></div>
+      <div class="form-group"><label class="form-label">Flat Number</label><input class="form-input" id="r-flat" placeholder="e.g. 101"></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="r-pass" placeholder="Min 6 characters"></div>
+      <div class="form-group mb20"><label class="form-label">Confirm Password</label><input class="form-input" type="password" id="r-pass2"></div>
+      <button class="btn-primary" onclick="regStep1Next()"><i class="ti ti-arrow-right"></i> Next</button>`;
+  } else if(state.regStep===2){
+    var h='<p style="font-size:12px;color:var(--text3);margin-bottom:14px;">Select multiple companies</p>';
+    COMPANIES.forEach(co=>{
+      var sel=state.regData.companies.includes(co.id);
+      h+=`<div class="co-chip${sel?' sel':''}" onclick="toggleCo(${co.id})">
+        <div class="co-logo" style="background:${co.color}20;color:${co.color}">${co.icon}</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:500;">${co.name}</div><div style="font-size:11px;color:var(--text3);">${co.tagline}</div></div>
+        <i class="ti ti-${sel?'circle-check text-green':'circle'}" style="font-size:20px;${sel?'':'color:var(--text3);'}"></i>
+      </div>`;
+    });
+    h+=`<button class="btn-primary" style="margin-top:8px;" onclick="regStep2Next()"><i class="ti ti-arrow-right"></i> Next</button>`;
+    b.innerHTML=h;
+  } else if(state.regStep===3){
+    var h='<p style="font-size:12px;color:var(--text3);margin-bottom:12px;">Set default quantities</p>';
+    var selected=COMPANIES.filter(c=>state.regData.companies.includes(c.id));
+    selected.forEach(co=>{
+      h+=`<div style="font-size:11px;font-weight:700;color:var(--green);margin:12px 0 8px;text-transform:uppercase;letter-spacing:.5px;">${co.name}</div>`;
+      co.products.forEach(p=>{
+        var ex=state.regData.milks.find(m=>m.id===p.id);
+        var qty=ex?ex.qty:0;
+        h+=`<div class="prod-row">
+          <div class="prod-icon">🥛</div>
+          <div class="prod-info"><div class="prod-name">${p.name}</div><div class="prod-sub">₹${p.price}/litre</div></div>
+          <div class="qty-ctrl">
+            <button class="qty-btn" onclick="regQtyAdj(${p.id},${p.price},'${p.name}',-0.5)">−</button>
+            <div class="qty-val" id="rq${p.id}">${qty>0?qty+'L':'0'}</div>
+            <button class="qty-btn" onclick="regQtyAdj(${p.id},${p.price},'${p.name}',0.5)">+</button>
+          </div>
+        </div>`;
+      });
+    });
+    h+=`<button class="btn-primary" style="margin-top:14px;" onclick="regStep3Next()"><i class="ti ti-arrow-right"></i> Next</button>`;
+    b.innerHTML=h;
+  } else if(state.regStep===4){
+    var daily=state.regData.pattern==='daily';
+    b.innerHTML=`
+      <p style="font-size:12px;color:var(--text3);margin-bottom:16px;">How do you want your milk delivered?</p>
+      <div class="co-chip${daily?' sel':''}" onclick="selPattern('daily')">
+        <div class="co-logo" style="background:var(--card2)"><i class="ti ti-calendar" style="font-size:16px;color:var(--text2);"></i></div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:500;">Regular Daily</div><div style="font-size:11px;color:var(--text3);">Delivered every day.</div></div>
+        <i class="ti ti-${daily?'circle-check text-green':'circle'}" style="font-size:20px;"></i>
+      </div>
+      <div class="co-chip${!daily?' sel':''}" onclick="selPattern('alternate')">
+        <div class="co-logo" style="background:var(--card2)"><i class="ti ti-calendar-event" style="font-size:16px;color:var(--green);"></i></div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:500;color:var(--green);">Alternate Days</div><div style="font-size:11px;color:var(--text3);">Delivered one day, skipped next.</div></div>
+        <i class="ti ti-${!daily?'circle-check text-green':'circle'}" style="font-size:20px;"></i>
+      </div>
+      <button class="btn-primary" style="margin-top:16px;" onclick="state.regStep++;renderRegStep()"><i class="ti ti-arrow-right"></i> Next</button>`;
+  } else if(state.regStep===5){
+    var milkRows=state.regData.milks.map(m=>`<div class="flex-between" style="padding:5px 0;font-size:13px;"><span style="color:var(--text2);">${m.name}</span><span class="fw6">${m.qty}L</span></div>`).join('')||'<p style="color:var(--text3);font-size:12px;">No milk selected.</p>';
+    b.innerHTML=`
+      <p style="font-size:12px;color:var(--text3);margin-bottom:14px;">Review your details</p>
+      <div class="card mb12">
+        <div class="sec-title mb8">Your Details</div>
+        <div style="font-size:13px;color:var(--text2);" id="rv-details"></div>
+      </div>
+      <div class="card mb12"><div class="sec-title mb8">Milk Subscription</div>${milkRows}</div>
+      <div class="card mb20"><div class="sec-title mb4">Delivery Pattern</div><div class="text-green fw6" style="font-size:13px;">${state.regData.pattern==='alternate'?'Alternate Days':'Regular Daily'}</div></div>
+      <button class="btn-primary" id="reg-create-btn" onclick="submitRegister()"><i class="ti ti-check"></i> Create Account</button>`;
+    document.getElementById('rv-details').innerHTML=`
+      <div>👤 ${state.regData.name||''}</div>
+      <div>📱 ${state.regData.mobile||''}</div>
+      <div>📧 ${state.regData.email||''}</div>
+      <div>🏠 ${state.regData.wing||''}, Flat ${state.regData.flat||''}</div>`;
+  }
+}
+
+function regStep1Next(){
+  var name=document.getElementById('r-name').value.trim();
+  var mobile=document.getElementById('r-mobile').value.trim();
+  var email=document.getElementById('r-email').value.trim();
+  var wing=document.getElementById('r-wing').value.trim();
+  var flat=document.getElementById('r-flat').value.trim();
+  var pass=document.getElementById('r-pass').value;
+  var pass2=document.getElementById('r-pass2').value;
+  if(!name||!mobile||!email||!wing||!flat||!pass){toast('All fields required','error');return;}
+  if(pass.length<6){toast('Password min 6 characters','error');return;}
+  if(pass!==pass2){toast('Passwords do not match','error');return;}
+  Object.assign(state.regData,{name,mobile,email,wing,flat,password:pass});
+  state.regStep++;renderRegStep();
+}
+function regStep2Next(){if(!state.regData.companies.length){toast('Select at least one company','error');return;}state.regStep++;renderRegStep();}
+function regStep3Next(){if(!state.regData.milks.length){toast('Add at least one milk product','error');return;}state.regStep++;renderRegStep();}
+function toggleCo(id){var idx=state.regData.companies.indexOf(id);if(idx>=0)state.regData.companies.splice(idx,1);else state.regData.companies.push(id);renderRegStep();}
+function selPattern(p){state.regData.pattern=p;renderRegStep();}
+function regQtyAdj(id,price,name,delta){
+  var ex=state.regData.milks.find(m=>m.id===id);
+  var cur=ex?ex.qty:0;
+  var nq=Math.max(0,Math.round((cur+delta)*10)/10);
+  if(nq===0&&ex)state.regData.milks=state.regData.milks.filter(m=>m.id!==id);
+  else if(ex)ex.qty=nq;
+  else if(nq>0)state.regData.milks.push({id,price,name,qty:nq});
+  var el=document.getElementById('rq'+id);if(el)el.textContent=nq>0?nq+'L':'0';
+}
+
+async function submitRegister(){
+  var btn=document.getElementById('reg-create-btn');
+  btn.innerHTML='<span class="loader"></span> Creating...';btn.disabled=true;
+  var payload={name:state.regData.name,email:state.regData.email,mobile:state.regData.mobile,
+    password:state.regData.password,wing:state.regData.wing,flat_number:state.regData.flat,
+    delivery_pattern:state.regData.pattern,
+    subscriptions:state.regData.milks.map(m=>({product_id:m.id,qty:m.qty}))};
+  var res=await api('auth','register',payload,'POST');
+  btn.disabled=false;
+  if(res.success){showRoot('auth');switchAuth('login');toast('Account created! You can now login.');}
+  else{btn.innerHTML='<i class="ti ti-check"></i> Create Account';toast(res.message,'error');}
+}
+
+// ── App Launch ────────────────────────────────────────────
+async function launchApp(){showRoot('app');await loadHomeData();goTab('home');}
+
+async function checkSession(){
+  var res=await api('auth','me');
+  if(res.success){state.customer=res.data;launchApp();}
+  else showRoot('auth');
+}
+
+// ── Tab Nav ───────────────────────────────────────────────
+function goTab(tab){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(n=>n.classList.remove('active'));
+  document.getElementById('screen-'+tab).classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='home')renderHome();
+  if(tab==='mymilk')renderMyMilk();
+  if(tab==='payments')renderPayments();
+  if(tab==='profile')renderProfile();
+}
+
+// ── HOME ──────────────────────────────────────────────────
+async function loadHomeData(){
+  var res=await api('dashboard','home');
+  if(res.success)state.homeData=res.data;
+}
+
+function renderHome(){
+  var d=state.homeData; var c=state.customer;
+  if(!d){document.getElementById('screen-home').innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);"><span class="loader" style="border-color:rgba(34,197,94,.3);border-top-color:var(--green);"></span></div>';loadHomeData().then(()=>{if(state.homeData)renderHome();});return;}
+  var dels=d.today_deliveries||[];
+  var totalQty=dels.reduce((a,x)=>a+parseFloat(x.qty_ordered||0),0);
+  var totalAmt=dels.reduce((a,x)=>a+(parseFloat(x.qty_ordered||0)*parseFloat(x.price_at_delivery||0)),0);
+  var isDelivered=dels.some(x=>x.status==='delivered');
+  var tomorrowDels=d.tomorrow_deliveries||[];
+  var tmrwQty=tomorrowDels.reduce((a,x)=>a+parseFloat(x.qty_ordered||0),0);
+
+  var delRows=dels.map(del=>`
+    <div class="prod-row">
+      <div class="prod-icon">🥛</div>
+      <div class="prod-info">
+        <div class="prod-name">${del.product_name}</div>
+        <div class="prod-sub">${del.company_name} · ₹${parseFloat(del.price_at_delivery||0).toFixed(0)}/L</div>
+        <div style="font-size:10px;color:var(--text3);">Status: <span style="color:${del.status==='delivered'?'var(--green)':del.status==='skipped'?'var(--text3)':'var(--amber)'};">${del.status}</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="updateQty(${del.product_id},${Math.max(0,parseFloat(del.qty_ordered)-0.5)})">−</button>
+          <div class="qty-val" id="hq-${del.product_id}">${parseFloat(del.qty_ordered)}L</div>
+          <button class="qty-btn" onclick="updateQty(${del.product_id},${parseFloat(del.qty_ordered)+0.5})">+</button>
+        </div>
+        <button class="wants-btn"><i class="ti ti-circle-check" style="font-size:12px;"></i> Wants Milk</button>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('screen-home').innerHTML=`
+    <div class="header">
+      <div class="flex-between">
+        <div>
+          <div style="font-size:13px;color:var(--text3);">Good morning 👋</div>
+          <div style="font-size:22px;font-weight:700;font-family:'Space Grotesk',sans-serif;">${c.name}</div>
+        </div>
+        <button class="notif-btn" onclick="goTab('profile')">
+          <i class="ti ti-bell" style="font-size:18px;color:var(--text2);"></i>
+          ${d.unread_notifications>0?'<div class="notif-dot"></div>':''}
+        </button>
+      </div>
+      <div class="stat-strip">
+        <div class="stat-box"><div class="stat-val"><i class="ti ti-droplet" style="color:var(--green);font-size:12px;"></i> ${totalQty}L</div><div class="stat-lbl">Today's Milk</div></div>
+        <div class="stat-box"><div class="stat-val">${c.wing}/${c.flat_number}</div><div class="stat-lbl">Wing/Flat</div></div>
+        <div class="stat-box"><div class="stat-val"><i class="ti ti-${isDelivered?'circle-check':dels.length?'clock':'calendar-x'}" style="color:${isDelivered?'var(--green)':'var(--amber)'};font-size:13px;"></i></div><div class="stat-lbl">${isDelivered?'Delivered':dels.length?'Pending':'No Delivery'}</div></div>
+      </div>
+    </div>
+    <div class="p16">
+      <div class="card mb12">
+        <div style="font-size:14px;font-weight:600;margin-bottom:12px;">Today's Subscription</div>
+        ${delRows||'<p style="color:var(--text3);font-size:12px;padding:8px 0;">No deliveries scheduled today.</p>'}
+        ${totalQty>0?`<div class="divider"></div><div class="flex-between text-muted" style="font-size:12px;"><span>Total: <span class="text-green fw6">${totalQty}L</span></span><span>Amount: <span style="color:var(--text);font-weight:600;">₹${totalAmt.toFixed(0)}</span></span></div>`:''}
+      </div>
+      <div class="card mb12">
+        <div class="flex-between mb12">
+          <div class="flex-center gap8"><i class="ti ti-calendar-off" style="color:var(--red);font-size:18px;"></i><span class="fw6">SKIP</span></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="skip-opt" onclick="skipToday(this)"><i class="ti ti-x" style="font-size:12px;"></i> Skip Today</button>
+          <button class="skip-opt" onclick="toast('Select a date range from calendar','amber')"><i class="ti ti-calendar" style="font-size:12px;"></i> Skip Range</button>
+        </div>
+      </div>
+      <div class="card mb12">
+        <div style="font-weight:600;margin-bottom:10px;">Today's Delivery</div>
+        <div class="flex-center gap8" style="margin-bottom:10px;">
+          <div style="width:40px;height:40px;border-radius:50%;background:${isDelivered?'#0d3320':'#2a1f00'};display:flex;align-items:center;justify-content:center;">
+            <i class="ti ti-${isDelivered?'check text-green':'clock text-amber'}" style="font-size:20px;"></i>
+          </div>
+          <div>
+            <div class="${isDelivered?'text-green':'text-amber'} fw6">${isDelivered?'DELIVERED':'PENDING'}</div>
+            <div style="font-size:11px;color:var(--text3);">${isDelivered?'Your milk has been delivered.':'Expected this morning.'}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="del-choice${isDelivered?' active':''}" onclick="toast('Delivery confirmed ✓')"><i class="ti ti-check" style="font-size:12px;"></i> Delivered</button>
+          <button class="del-choice" onclick="reportNotDelivered()"><i class="ti ti-x" style="font-size:12px;"></i> Not Delivered</button>
+        </div>
+      </div>
+      ${tomorrowDels.length?`
+      <div class="card mb12">
+        <div class="flex-between">
+          <div>
+            <div style="font-weight:600;font-size:13px;">Tomorrow's Delivery</div>
+            <div style="font-size:11px;color:var(--green);">${d.tomorrow}</div>
+            <div style="font-size:11px;color:var(--text3);">${tomorrowDels.length} items · ${tmrwQty}L total</div>
+          </div>
+          <button class="wants-btn"><i class="ti ti-check" style="font-size:12px;"></i> Wants Milk</button>
+        </div>
+      </div>`:''}
+      <div class="card">
+        <div class="flex-between">
+          <div class="flex-center gap8">
+            <div style="width:36px;height:36px;border-radius:50%;background:var(--greendim);display:flex;align-items:center;justify-content:center;"><i class="ti ti-user" style="color:var(--green);"></i></div>
+            <div><div style="font-size:13px;font-weight:500;">Distributor Info</div><div style="font-size:11px;color:var(--text3);">Shree Dairy</div></div>
+          </div>
+          <button class="wants-btn" onclick="toast('Calling distributor...')"><i class="ti ti-phone" style="font-size:12px;"></i> Call</button>
+        </div>
+      </div>
+      ${d.balance_due>0?`<div style="background:#2a1f00;border-radius:10px;padding:12px;margin-top:12px;font-size:12px;"><i class="ti ti-alert-circle" style="color:var(--amber);vertical-align:-2px;"></i> <span style="color:var(--amber);">₹${d.balance_due} pending.</span> <span style="cursor:pointer;text-decoration:underline;color:var(--amber);" onclick="goTab('payments')">Pay Now →</span></div>`:''}
+    </div>`;
+}
+
+async function updateQty(productId,qty){
+  if(qty<0)return;
+  var el=document.getElementById('hq-'+productId);if(el)el.textContent=qty+'L';
+  var res=await api('dashboard','update-qty',{product_id:productId,qty},'POST');
+  toast(res.success?'Quantity updated.':res.message,res.success?'success':'error');
+}
+
+async function skipToday(btn){
+  if(btn)btn.classList.add('active');
+  var res=await api('dashboard','skip',{type:'today'},'POST');
+  toast(res.success?'Skip saved. No delivery today.':res.message,res.success?'success':'error');
+  if(res.success){await loadHomeData();renderHome();}
+}
+
+async function reportNotDelivered(){
+  var res=await api('dashboard','report-not-delivered',{date:new Date().toISOString().split('T')[0]},'POST');
+  toast(res.success?'Issue reported to distributor.':res.message,res.success?'success':'error');
+}
+
+// ── MY MILK ───────────────────────────────────────────────
+async function renderMyMilk(){
+  var s=document.getElementById('screen-mymilk');
+  s.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);"><span class="loader" style="border-color:rgba(34,197,94,.3);border-top-color:var(--green);"></span></div>';
+  var res=await api('dashboard','subscriptions');
+  var subs=res.success?res.data:[];
+  var d=state.homeData;
+  var c=state.customer;
+  var totalQty=subs.reduce((a,s)=>a+parseFloat(s.default_qty||0),0);
+
+  var subRows=subs.map(sub=>`
+    <div class="prod-row">
+      <div class="prod-icon">🥛</div>
+      <div class="prod-info">
+        <div class="prod-name">${sub.product_name}</div>
+        <div class="prod-sub">${sub.company_name} · ₹${sub.current_price||'—'}/L</div>
+        <div class="qty-ctrl" style="margin-top:5px;">
+          <button class="qty-btn" onclick="updateSub(${sub.product_id},${Math.max(0.5,parseFloat(sub.default_qty)-0.5)})">−</button>
+          <div class="qty-val" id="sq-${sub.product_id}">${parseFloat(sub.default_qty)}L</div>
+          <button class="qty-btn" onclick="updateSub(${sub.product_id},${parseFloat(sub.default_qty)+0.5})">+</button>
+          <span class="pill pill-green" style="margin-left:4px;">${d&&d.customer&&d.customer.delivery_pattern==='alternate'?'Alt.Days':'Daily'}</span>
+        </div>
+      </div>
+      <button onclick="removeSub(${sub.product_id},'${sub.product_name}')" style="background:none;border:none;color:var(--red);cursor:pointer;padding:4px;"><i class="ti ti-trash" style="font-size:16px;"></i></button>
+    </div>`).join('');
+
+  s.innerHTML=`
+    <div class="header">
+      <div class="flex-between">
+        <div><div style="font-size:18px;font-weight:700;font-family:'Space Grotesk',sans-serif;">My Milk</div><div style="font-size:11px;color:var(--text3);">Manage your subscription</div></div>
+        <i class="ti ti-droplet" style="font-size:24px;color:var(--green);"></i>
+      </div>
+      <div class="stat-strip">
+        <div class="stat-box"><div class="stat-val">${totalQty}L</div><div class="stat-lbl">Daily Total</div></div>
+        <div class="stat-box"><div class="stat-val">${subs.length}</div><div class="stat-lbl">Products</div></div>
+        <div class="stat-box"><div class="stat-val" style="font-size:11px;">${d&&d.customer&&d.customer.delivery_pattern==='alternate'?'Alt.Days':'Daily'}</div><div class="stat-lbl">Pattern</div></div>
+      </div>
+    </div>
+    <div class="p16">
+      <div class="card mb12">
+        <div class="flex-between mb12">
+          <div style="font-weight:600;">Your Subscriptions</div>
+          <button class="btn-outline" onclick="openAddMilk()"><i class="ti ti-plus" style="font-size:12px;vertical-align:-2px;"></i> Add Milk</button>
+        </div>
+        ${subRows||'<p style="color:var(--text3);font-size:12px;padding:8px 0;">No subscriptions yet.</p>'}
+      </div>
+      <div style="border:1.5px dashed var(--border);border-radius:12px;padding:16px;text-align:center;cursor:pointer;" onclick="openAddMilk()">
+        <i class="ti ti-plus-circle" style="font-size:24px;color:var(--green);"></i>
+        <div style="font-size:12px;color:var(--text3);margin-top:6px;">Add a new milk to your subscription</div>
+      </div>
+    </div>`;
+}
+
+async function updateSub(productId,qty){
+  var el=document.getElementById('sq-'+productId);if(el)el.textContent=qty+'L';
+  var res=await api('dashboard','subscription-save',{product_id:productId,qty},'POST');
+  toast(res.success?'Subscription updated.':res.message,res.success?'success':'error');
+}
+
+async function removeSub(productId,name){
+  if(!confirm('Remove '+name+' from subscription?'))return;
+  var res=await api('dashboard','subscription-remove',{product_id:productId},'POST');
+  toast(res.success?name+' removed.':res.message,res.success?'success':'error');
+  if(res.success)renderMyMilk();
+}
+
+var _amStep=1,_amCoId=null,_amProd=null,_amQty=1.0;
+function openAddMilk(){_amStep=1;_amCoId=null;_amProd=null;_amQty=1.0;renderAddMilkOverlay();}
+
+function renderAddMilkOverlay(){
+  var old=document.getElementById('add-milk-ov');if(old)old.remove();
+  var titles=['Select Company','Select Milk Type','Set Default Quantity'];
+  var ov=document.createElement('div');ov.className='overlay';ov.id='add-milk-ov';
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  var content=`<div class="sheet">
+    <div class="flex-between mb16">
+      <div><div style="font-size:10px;color:var(--text3);">Step ${_amStep} of 3</div><div style="font-size:16px;font-weight:600;">${titles[_amStep-1]}</div></div>
+      <button style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;" onclick="document.getElementById('add-milk-ov').remove()"><i class="ti ti-x"></i></button>
+    </div>`;
+  if(_amStep===1){
+    content+=COMPANIES.map(co=>`<div class="co-chip" onclick="amSelCo(${co.id})">
+      <div class="co-logo" style="background:${co.color}20;color:${co.color}">${co.icon}</div>
+      <div><div style="font-size:13px;font-weight:500;">${co.name}</div><div style="font-size:11px;color:var(--text3);">${co.tagline}</div></div>
+      <i class="ti ti-chevron-right" style="color:var(--text3);margin-left:auto;"></i>
+    </div>`).join('');
+  } else if(_amStep===2){
+    var co=COMPANIES.find(c=>c.id===_amCoId);
+    content+=(co?co.products:[]).map(p=>`<div class="co-chip" onclick="amSelProd(${p.id},'${p.name}',${p.price})">
+      <div class="prod-icon" style="width:40px;height:40px;font-size:18px;">🥛</div>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:500;">${p.name}</div><div style="font-size:11px;color:var(--text3);">₹${p.price}/litre</div></div>
+      <i class="ti ti-chevron-right" style="color:var(--text3);"></i>
+    </div>`).join('');
+  } else {
+    content+=`<div style="text-align:center;padding:16px 0;">
+      <div style="font-size:48px;margin-bottom:8px;">🥛</div>
+      <div style="font-size:15px;font-weight:600;">${_amProd?_amProd.name:''}</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:16px;">₹${_amProd?_amProd.price:0}/litre</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px;">
+        <button class="qty-btn" style="width:40px;height:40px;" onclick="amQtyAdj(-0.5)">−</button>
+        <div class="qty-val" style="width:60px;height:40px;font-size:16px;" id="am-qty">${_amQty}L</div>
+        <button class="qty-btn" style="width:40px;height:40px;" onclick="amQtyAdj(0.5)">+</button>
+      </div>
+      <div class="info-banner mb16"><i class="ti ti-circle-check" style="vertical-align:-2px;"></i> Uses your current delivery pattern</div>
+      <button class="btn-primary" id="am-add-btn" onclick="submitAddMilk()"><i class="ti ti-plus"></i> Add Milk</button>
+    </div>`;
+  }
+  content+='</div>';
+  ov.innerHTML=content;
+  document.body.appendChild(ov);
+}
+
+function amSelCo(id){_amCoId=id;_amStep=2;renderAddMilkOverlay();}
+function amSelProd(id,name,price){_amProd={id,name,price};_amStep=3;renderAddMilkOverlay();}
+function amQtyAdj(d){_amQty=Math.max(0.5,Math.round((_amQty+d)*10)/10);var el=document.getElementById('am-qty');if(el)el.textContent=_amQty+'L';}
+
+async function submitAddMilk(){
+  var btn=document.getElementById('am-add-btn');btn.innerHTML='<span class="loader"></span>';btn.disabled=true;
+  var res=await api('dashboard','subscription-save',{product_id:_amProd.id,qty:_amQty},'POST');
+  document.getElementById('add-milk-ov').remove();
+  toast(res.success?_amProd.name+' added!':res.message,res.success?'success':'error');
+  if(res.success)renderMyMilk();
+}
+
+// ── PAYMENTS ──────────────────────────────────────────────
+async function renderPayments(){
+  var s=document.getElementById('screen-payments');
+  s.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);"><span class="loader" style="border-color:rgba(34,197,94,.3);border-top-color:var(--green);"></span></div>';
+  var [payRes,calRes]=await Promise.all([api('dashboard','payment'),api('dashboard','calendar')]);
+  if(!payRes.success){s.innerHTML='<div style="padding:32px;text-align:center;color:var(--red);">'+payRes.message+'</div>';return;}
+  var p=payRes.data.payment||{total_amount:0,paid_amount:0,balance:0,status:'unpaid'};
+  var calc=payRes.data.breakdown||{};
+  var hist=payRes.data.history||[];
+  var calData=calRes.success?calRes.data:[];
+
+  // Build calendar
+  var calHtml='<div class="pay-cal-grid">';
+  ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d=>{calHtml+=`<div class="pay-cal-hdr">${d}</div>`;});
+  // June 2026 starts Monday, so 0 offset
+  calHtml+='<div class="pay-cell pc-empty"></div>';
+  var dataMap={};
+  calData.forEach(d=>{
+    var key=d.delivery_date;
+    if(!dataMap[key]||d.status==='delivered') dataMap[key]=d;
+  });
+  for(var day=1;day<=30;day++){
+    var dateStr=`2026-06-${String(day).padStart(2,'0')}`;
+    var dd=dataMap[dateStr];
+    var cls,qty='';
+    if(!dd){cls='pc-empty';}
+    else if(dd.status==='skipped'){cls='pc-skip';qty='-';}
+    else{var q=parseFloat(dd.total_qty||dd.qty_delivered||0);cls=q>=1.5?'pc-15l':q>=1?'pc-1l':'pc-05l';qty=q>0?q+'L':'';}
+    calHtml+=`<div class="pay-cell ${cls}">${day}${qty?`<br>${qty}`:''}  </div>`;
+  }
+  calHtml+='</div>';
+
+  var prodRows=(calc.product_summary||[]).map(ps=>`
+    <div class="prod-row">
+      <div class="prod-icon" style="font-size:18px;">🥛</div>
+      <div class="prod-info"><div class="prod-name">${ps.product_name} — ${parseFloat(ps.total_qty||0).toFixed(1)}L</div></div>
+      <div class="fw6" style="font-size:14px;">₹${parseFloat(ps.total_amount||0).toFixed(0)}</div>
+    </div>`).join('');
+
+  var months=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var histRows=hist.map(h=>`
+    <div class="prod-row">
+      <div style="width:38px;height:38px;border-radius:10px;background:var(--greendim);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-calendar" style="color:var(--green);font-size:15px;"></i></div>
+      <div class="prod-info"><div class="prod-name">${months[h.month]} ${h.year} — ₹${parseFloat(h.paid_amount||0).toFixed(0)}</div><div class="prod-sub">${h.payment_method||'—'}</div></div>
+      <span class="pill ${h.status==='paid'?'pill-green':h.status==='partial'?'pill-amber':'pill-red'}">${h.status}</span>
+    </div>`).join('');
+
+  s.innerHTML=`
+    <div style="background:var(--bg2);padding:14px 16px;position:sticky;top:0;z-index:50;" class="flex-between">
+      <span style="font-size:18px;font-weight:700;font-family:'Space Grotesk',sans-serif;">Payments</span>
+    </div>
+    <div class="p16">
+      <div class="card mb12" style="background:var(--green3);border-color:var(--green2);">
+        <div class="flex-between mb8">
+          <div>
+            <div style="font-size:11px;color:rgba(255,255,255,.7);">Total Payable</div>
+            <div style="font-size:28px;font-weight:700;">₹${parseFloat(p.total_amount||0).toLocaleString()}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:11px;color:rgba(255,255,255,.7);">June 2026</div>
+            <span class="pill" style="background:rgba(0,0,0,.2);color:#fff;">${p.status||'unpaid'}</span>
+          </div>
+        </div>
+        <button style="width:100%;background:rgba(0,0,0,.2);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;" onclick="toast('Contact your distributor to make a payment.')"><i class="ti ti-credit-card" style="vertical-align:-2px;"></i> Pay Now</button>
+      </div>
+      <div class="card mb12">
+        <div class="flex-between mb10"><span style="font-weight:600;">Monthly Milk Calendar</span><span style="font-size:12px;color:var(--text3);">June 2026</span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;font-size:9px;color:var(--text3);">
+          <span>⬜ No Milk</span><span style="color:#5db87a;">▪ 0.5L</span><span style="color:var(--green);">▪ 1L</span><span style="color:#7effa0;">▪ 1.5L+</span><span>—— Skipped</span>
+        </div>
+        ${calHtml}
+      </div>
+      <div class="card mb12">
+        <div style="font-weight:600;margin-bottom:12px;"><i class="ti ti-file-text" style="color:var(--green);vertical-align:-2px;"></i> Current Month Summary</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+          <div>
+            <div class="flex-between mb4" style="font-size:12px;"><span class="text-muted">Delivered</span><span class="fw6">${calc.delivered_days||0} Days</span></div>
+            <div class="flex-between mb4" style="font-size:12px;"><span class="text-muted">Skipped</span><span class="text-red fw6">${calc.skipped_days||0} Days</span></div>
+            <div class="flex-between" style="font-size:12px;"><span class="text-muted">Total Qty</span><span class="fw6">${parseFloat(calc.total_qty||0).toFixed(1)}L</span></div>
+          </div>
+          <div>
+            <div class="flex-between mb4" style="font-size:12px;"><span class="text-muted">Month Total</span><span class="text-green fw6">₹${parseFloat(calc.grand_total||0).toFixed(0)}</span></div>
+            <div class="flex-between" style="font-size:12px;"><span class="text-muted">Balance</span><span class="text-amber fw6">₹${parseFloat(p.balance||0).toFixed(0)}</span></div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="flex-between"><span class="fw6">Grand Total</span><span style="font-size:18px;font-weight:700;">₹${parseFloat(p.total_amount||0).toLocaleString()}</span></div>
+      </div>
+      ${prodRows?`<div class="card mb12"><div style="font-weight:600;margin-bottom:10px;"><i class="ti ti-receipt" style="color:var(--green);vertical-align:-2px;"></i> Bill Details</div>${prodRows}</div>`:''}
+      ${histRows?`<div class="card mb12"><div class="flex-between mb12"><span style="font-weight:600;">Payment History</span></div>${histRows}</div>`:''}
+    </div>`;
+}
+
+// ── PROFILE ───────────────────────────────────────────────
+async function renderProfile(){
+  var res=await api('auth','me');
+  var c=res.success?res.data:state.customer||{};
+  var t=state.notifToggles;
+  var notifRes=await api('dashboard','notifications');
+  var notifs=notifRes.success?notifRes.data:[];
+
+  document.getElementById('screen-profile').innerHTML=`
+    <div style="background:var(--bg2);padding:14px 16px;position:sticky;top:0;z-index:50;" class="flex-between">
+      <span style="font-size:18px;font-weight:700;font-family:'Space Grotesk',sans-serif;">Profile</span>
+    </div>
+    <div class="p16">
+      <div class="card mb12">
+        <div class="flex-between">
+          <div class="flex-center gap12">
+            <div class="avatar"><i class="ti ti-user" style="font-size:22px;color:#fff;"></i></div>
+            <div>
+              <div style="font-size:16px;font-weight:600;">${c.name||'—'}</div>
+              <div style="font-size:12px;color:var(--text3);">Wing ${c.wing||'—'} / Flat ${c.flat_number||'—'}</div>
+              <span class="pill pill-green" style="margin-top:4px;font-size:10px;"><i class="ti ti-calendar" style="font-size:10px;vertical-align:-1px;"></i> Customer Since ${c.created_at?c.created_at.slice(0,7):'2026-06'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card mb12">
+        <div class="sec-title">Account Information</div>
+        <div class="row-link"><div class="row-link-left"><i class="ti ti-user"></i>Name</div><span style="font-size:12px;color:var(--text3);">${c.name||'—'}</span></div>
+        <div class="row-link"><div class="row-link-left"><i class="ti ti-mail"></i>Email</div><span style="font-size:12px;color:var(--text3);">${c.email||'—'}</span></div>
+        <div class="row-link"><div class="row-link-left"><i class="ti ti-phone"></i>Mobile</div><span style="font-size:12px;color:var(--text3);">${c.mobile||'—'}</span></div>
+        <div class="row-link" style="border-bottom:none;"><div class="row-link-left"><i class="ti ti-building"></i>Wing / Flat</div><span style="font-size:12px;color:var(--text3);">${c.wing||'—'} / ${c.flat_number||'—'}</span></div>
+        <button class="btn-primary" style="margin-top:12px;" onclick="toast('Edit profile: coming soon')"><i class="ti ti-edit"></i> Edit Profile</button>
+      </div>
+      ${notifs.length?`<div class="card mb12">
+        <div class="sec-title">Recent Notifications</div>
+        ${notifs.slice(0,5).map(n=>`<div class="row-link" style="padding:8px 0;"><div><div style="font-size:12px;font-weight:500;">${n.title}</div><div style="font-size:11px;color:var(--text3);">${n.message.slice(0,60)}${n.message.length>60?'...':''}</div><div style="font-size:10px;color:var(--text3);margin-top:2px;">${n.created_at?n.created_at.slice(0,16):''}</div></div><span class="pill ${n.is_read?'pill-gray':'pill-green'}">${n.is_read?'Read':'New'}</span></div>`).join('')}
+      </div>`:''}
+      <div class="card mb12">
+        <div class="sec-title">Notification Settings</div>
+        ${[['delivery','ti-bell','Delivery Updates'],['bill','ti-file-text','Monthly Bill Alerts'],['payment','ti-currency-rupee','Payment Reminders'],['price','ti-tag','Price Changes']].map(([key,icon,label])=>`
+        <div class="row-link"><div class="row-link-left"><i class="ti ${icon}"></i>${label}</div>
+        <button class="toggle ${t[key]?'on':'off'}" onclick="toggleNotif('${key}',this)"></button></div>`).join('')}
+      </div>
+      <div class="card mb12">
+        <div class="sec-title">Security</div>
+        <div class="row-link" onclick="toast('Change Password')"><div class="row-link-left"><i class="ti ti-lock"></i>Change Password</div><i class="ti ti-chevron-right" style="color:var(--text3);"></i></div>
+        <div class="row-link" style="border-bottom:none;" onclick="toast('Change Mobile Number')"><div class="row-link-left"><i class="ti ti-phone"></i>Change Mobile Number</div><i class="ti ti-chevron-right" style="color:var(--text3);"></i></div>
+      </div>
+      <div class="card mb12">
+        <div class="sec-title">Support</div>
+        <div class="row-link" onclick="toast('Calling distributor...')"><div class="row-link-left"><i class="ti ti-phone"></i>Contact Distributor</div><i class="ti ti-chevron-right" style="color:var(--text3);"></i></div>
+        <div class="row-link" style="border-bottom:none;" onclick="toast('Help & Support')"><div class="row-link-left"><i class="ti ti-help-circle"></i>Help & Support</div><i class="ti ti-chevron-right" style="color:var(--text3);"></i></div>
+      </div>
+      <div class="card mb12">
+        <div class="sec-title">App Information</div>
+        <div class="row-link" style="border-bottom:none;"><div class="row-link-left"><i class="ti ti-info-circle"></i>MilkRoute</div><span style="font-size:11px;color:var(--text3);">Version 1.0.0</span></div>
+      </div>
+      <button class="btn-danger" onclick="doLogout()"><i class="ti ti-logout"></i> Logout</button>
+    </div>`;
+}
+
+function toggleNotif(key,btn){
+  state.notifToggles[key]=!state.notifToggles[key];
+  btn.className='toggle '+(state.notifToggles[key]?'on':'off');
+  toast((state.notifToggles[key]?'Enabled':'Disabled')+' '+key+' notifications');
+}
+
+window.addEventListener('DOMContentLoaded',()=>checkSession());
+</script>
+</body>
+</html>

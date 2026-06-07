@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MilkRoute Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0a1a0f;--bg2:#0d2014;--bg3:#102618;
+  --card:#132c19;--card2:#182f1e;--card3:#1d3824;
+  --green:#22c55e;--green2:#16a34a;--green3:#15803d;--greendim:#0d3320;
+  --text:#e8f5eb;--text2:#a3c9a8;--text3:#5a8c60;
+  --red:#ef4444;--amber:#f59e0b;--blue:#3b82f6;
+  --border:#1a3d22;--radius:12px;--sidebar:240px;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100;transition:.3s;}
+.sidebar-logo{padding:20px 16px;border-bottom:1px solid var(--border);}
+.sidebar-logo-inner{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:36px;height:36px;border-radius:10px;background:var(--green);display:flex;align-items:center;justify-content:center;}
+.logo-text{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;}
+.logo-badge{font-size:9px;background:var(--greendim);color:var(--green);padding:2px 6px;border-radius:4px;margin-left:auto;}
+.nav-section{padding:8px 8px 0;flex:1;overflow-y:auto;}
+.nav-label{font-size:10px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;padding:12px 8px 6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--text2);margin-bottom:2px;transition:.15s;border:none;background:none;width:100%;text-align:left;font-size:13px;font-family:inherit;}
+.nav-item:hover{background:var(--card);color:var(--text);}
+.nav-item.active{background:var(--greendim);color:var(--green);}
+.nav-item i{font-size:18px;width:20px;}
+.sidebar-footer{padding:12px;border-top:1px solid var(--border);}
+.admin-badge{display:flex;align-items:center;gap:8px;padding:8px;background:var(--card);border-radius:8px;}
+.admin-avatar{width:30px;height:30px;border-radius:50%;background:var(--green3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#fff;flex-shrink:0;}
+
+/* MAIN */
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topbar-title{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;}
+.topbar-actions{display:flex;align-items:center;gap:12px;}
+.content{padding:24px;flex:1;}
+
+/* CARDS */
+.card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:20px;}
+.card-sm{background:var(--card2);border-radius:8px;padding:12px;border:1px solid var(--border);}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;}
+.stat-card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+.stat-card-val{font-size:24px;font-weight:700;font-family:'Space Grotesk',sans-serif;margin-bottom:2px;}
+.stat-card-lbl{font-size:11px;color:var(--text3);}
+.stat-card-trend{font-size:11px;margin-top:6px;}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:11px 12px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--card2);}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:500;}
+.badge-green{background:#0d3320;color:var(--green);}
+.badge-amber{background:#2a1f00;color:var(--amber);}
+.badge-red{background:#2a0d0d;color:var(--red);}
+.badge-blue{background:#0d1f3a;color:var(--blue);}
+.badge-gray{background:var(--card3);color:var(--text3);}
+
+/* BUTTONS */
+.btn{padding:7px 14px;border-radius:7px;border:none;font-size:12px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;transition:.15s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green2);}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text2);}
+.btn-outline:hover{background:var(--card2);}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-sm{padding:5px 10px;font-size:11px;}
+.btn-icon{width:32px;height:32px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;}
+.btn-icon:hover{background:var(--card2);}
+
+/* FORM */
+.form-row{display:grid;gap:12px;margin-bottom:12px;}
+.form-row-2{grid-template-columns:1fr 1fr;}
+.form-row-3{grid-template-columns:1fr 1fr 1fr;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-label{font-size:11px;color:var(--text3);}
+.form-input{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
+.form-input:focus{border-color:var(--green3);}
+select.form-input option{background:var(--bg2);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal{background:var(--bg2);border-radius:16px;border:1px solid var(--border);padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
+
+/* SEARCH BAR */
+.search-bar{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 12px;}
+.search-bar i{color:var(--text3);font-size:16px;}
+.search-bar input{background:none;border:none;color:var(--text);font-size:13px;outline:none;width:200px;}
+
+/* PAGE SECTION */
+.page{display:none;}
+.page.active{display:block;}
+
+/* DELIVERY BOARD */
+.delivery-row{display:grid;grid-template-columns:1fr 1fr 80px 90px 100px 120px;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);}
+.delivery-row:hover{background:var(--card2);}
+.delivery-hdr{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;}
+
+/* PILL STATUS */
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px;}
+.status-dot.delivered{background:var(--green);}
+.status-dot.pending{background:var(--amber);}
+.status-dot.skipped{background:var(--text3);}
+.status-dot.not_delivered{background:var(--red);}
+
+/* TOAST */
+.toast{position:fixed;top:16px;right:16px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;z-index:999;font-size:13px;display:none;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.toast.show{display:flex;}
+.toast.success .toast-icon{color:var(--green);}
+.toast.error .toast-icon{color:var(--red);}
+
+/* CALENDAR MINI */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.cal-hdr{font-size:9px;color:var(--text3);text-align:center;padding:3px 0;}
+.cal-cell{border-radius:4px;padding:4px 2px;text-align:center;font-size:9px;font-weight:500;cursor:default;}
+.cal-delivered{background:#1a3823;color:var(--green);}
+.cal-skipped{background:var(--bg3);color:var(--text3);}
+.cal-pending{background:#2a1f00;color:var(--amber);}
+.cal-empty{background:transparent;}
+
+/* CHARTS PLACEHOLDER */
+.chart-bar-wrap{display:flex;align-items:flex-end;gap:6px;height:80px;}
+.chart-bar{background:var(--greendim);border-radius:4px 4px 0 0;flex:1;min-width:20px;position:relative;cursor:pointer;transition:.15s;}
+.chart-bar:hover{background:var(--green3);}
+.chart-bar-label{font-size:9px;color:var(--text3);text-align:center;margin-top:3px;}
+
+/* MISC */
+.divider{height:1px;background:var(--border);margin:16px 0;}
+.text-green{color:var(--green);}
+.text-amber{color:var(--amber);}
+.text-red{color:var(--red);}
+.text-muted{color:var(--text3);}
+.fw6{font-weight:600;}
+.flex{display:flex;}
+.flex-between{display:flex;justify-content:space-between;align-items:center;}
+.flex-center{display:flex;align-items:center;}
+.gap4{gap:4px;}
+.gap8{gap:8px;}
+.gap12{gap:12px;}
+.gap16{gap:16px;}
+.mb8{margin-bottom:8px;}
+.mb16{margin-bottom:16px;}
+.mb24{margin-bottom:24px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.mt8{margin-top:8px;}
+.mt16{margin-top:16px;}
+</style>
+</head>
+<body>
+
+<div id="toast" class="toast">
+  <i class="ti ti-circle-check toast-icon" id="toast-icon"></i>
+  <span id="toast-msg">Done</span>
+</div>
+
+<!-- LOGIN PAGE -->
+<div id="login-page" style="min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;background:var(--bg);">
+  <div style="width:360px;">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="width:56px;height:56px;border-radius:16px;background:var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;"><i class="ti ti-shield-lock" style="font-size:26px;color:#fff;"></i></div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;">MilkRoute Admin</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px;">Secure admin access</div>
+    </div>
+    <div class="card">
+      <div class="form-group mb16"><label class="form-label">Email Address</label><input class="form-input" type="email" id="admin-email" value="admin@milkroute.com"></div>
+      <div class="form-group" style="margin-bottom:20px;"><label class="form-label">Password</label><input class="form-input" type="password" id="admin-pass" value="password"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;" onclick="adminLogin()"><i class="ti ti-login"></i> Login to Admin Panel</button>
+    </div>
+    <p style="text-align:center;margin-top:16px;font-size:11px;color:var(--text3);">This is a protected admin-only area.</p>
+  </div>
+</div>
+
+<!-- ADMIN APP -->
+<div id="admin-app" style="display:none;width:100%;display:none;">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-inner">
+        <div class="logo-icon"><i class="ti ti-droplet" style="font-size:18px;color:#fff;"></i></div>
+        <span class="logo-text">MilkRoute</span>
+        <span class="logo-badge">Admin</span>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <button class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard"><i class="ti ti-dashboard"></i> Dashboard</button>
+      <div class="nav-label">Operations</div>
+      <button class="nav-item" onclick="showPage('deliveries')" id="nav-deliveries"><i class="ti ti-truck-delivery"></i> Deliveries</button>
+      <button class="nav-item" onclick="showPage('customers')" id="nav-customers"><i class="ti ti-users"></i> Customers</button>
+      <div class="nav-label">Finance</div>
+      <button class="nav-item" onclick="showPage('payments')" id="nav-payments"><i class="ti ti-wallet"></i> Payments</button>
+      <button class="nav-item" onclick="showPage('reports')" id="nav-reports"><i class="ti ti-chart-bar"></i> Reports</button>
+      <div class="nav-label">Catalogue</div>
+      <button class="nav-item" onclick="showPage('products')" id="nav-products"><i class="ti ti-bottle"></i> Products & Prices</button>
+      <div class="nav-label">System</div>
+      <button class="nav-item" onclick="showPage('notifications')" id="nav-notifications"><i class="ti ti-bell"></i> Notifications</button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="admin-badge">
+        <div class="admin-avatar">A</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Super Admin</div>
+          <div style="font-size:10px;color:var(--text3);">admin@milkroute.com</div>
+        </div>
+        <button class="btn-icon" onclick="adminLogout()" title="Logout"><i class="ti ti-logout" style="font-size:15px;"></i></button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-actions">
+        <div class="search-bar" id="topbar-search" style="display:none;">
+          <i class="ti ti-search"></i>
+          <input type="text" placeholder="Search customers..." id="global-search" oninput="globalSearch(this.value)">
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="showPage('deliveries')"><i class="ti ti-truck-delivery"></i> Today's Deliveries</button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('record-payment-modal')"><i class="ti ti-plus"></i> Record Payment</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── DASHBOARD ─────────────────────────────────────── -->
+      <div id="page-dashboard" class="page active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#0d3320;"><i class="ti ti-users" style="color:var(--green);font-size:20px;"></i></div>
+            <div class="stat-card-val text-green">248</div>
+            <div class="stat-card-lbl">Active Customers</div>
+            <div class="stat-card-trend text-green"><i class="ti ti-trending-up" style="font-size:11px;"></i> +12 this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#0d2233;"><i class="ti ti-droplet" style="color:var(--blue);font-size:20px;"></i></div>
+            <div class="stat-card-val" style="color:var(--blue);">187L</div>
+            <div class="stat-card-lbl">Delivered Today</div>
+            <div class="stat-card-trend text-muted">212 customers served</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#2a1f00;"><i class="ti ti-clock" style="color:var(--amber);font-size:20px;"></i></div>
+            <div class="stat-card-val text-amber">36</div>
+            <div class="stat-card-lbl">Pending Deliveries</div>
+            <div class="stat-card-trend text-amber">Needs attention</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#0d3320;"><i class="ti ti-currency-rupee" style="color:var(--green);font-size:20px;"></i></div>
+            <div class="stat-card-val text-green">₹48,200</div>
+            <div class="stat-card-lbl">Collected This Month</div>
+            <div class="stat-card-trend text-muted">₹12,400 outstanding</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#2a0d0d;"><i class="ti ti-alert-circle" style="color:var(--red);font-size:20px;"></i></div>
+            <div class="stat-card-val text-red">₹12,400</div>
+            <div class="stat-card-lbl">Total Outstanding</div>
+            <div class="stat-card-trend text-red">18 customers</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background:#0d3320;"><i class="ti ti-calendar" style="color:var(--green);font-size:20px;"></i></div>
+            <div class="stat-card-val">230</div>
+            <div class="stat-card-lbl">Deliveries Today</div>
+            <div class="stat-card-trend text-muted">18 skipped</div>
+          </div>
+        </div>
+
+        <div class="grid-2 mb24">
+          <div class="card">
+            <div class="flex-between mb16">
+              <div style="font-weight:600;">Today's Delivery Status</div>
+              <button class="btn btn-primary btn-sm" onclick="bulkMarkDelivered()"><i class="ti ti-check"></i> Mark All Delivered</button>
+            </div>
+            <div style="display:flex;gap:12px;margin-bottom:16px;">
+              <div class="card-sm" style="flex:1;text-align:center;">
+                <div style="font-size:20px;font-weight:700;color:var(--green);">212</div>
+                <div style="font-size:10px;color:var(--text3);">Delivered</div>
+              </div>
+              <div class="card-sm" style="flex:1;text-align:center;">
+                <div style="font-size:20px;font-weight:700;color:var(--amber);">36</div>
+                <div style="font-size:10px;color:var(--text3);">Pending</div>
+              </div>
+              <div class="card-sm" style="flex:1;text-align:center;">
+                <div style="font-size:20px;font-weight:700;color:var(--text3);">18</div>
+                <div style="font-size:10px;color:var(--text3);">Skipped</div>
+              </div>
+              <div class="card-sm" style="flex:1;text-align:center;">
+                <div style="font-size:20px;font-weight:700;color:var(--red);">2</div>
+                <div style="font-size:10px;color:var(--text3);">Not Delivered</div>
+              </div>
+            </div>
+            <!-- Mini chart -->
+            <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">Last 7 days — litres delivered</div>
+            <div class="chart-bar-wrap" id="week-chart"></div>
+            <div style="display:flex;gap:6px;" id="week-chart-labels"></div>
+          </div>
+          <div class="card">
+            <div class="flex-between mb16"><div style="font-weight:600;">Outstanding Payments</div><button class="btn btn-outline btn-sm" onclick="showPage('payments')">View All</button></div>
+            <div id="dash-outstanding-list">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="flex-between mb16"><div style="font-weight:600;">Recent Customers</div><button class="btn btn-outline btn-sm" onclick="showPage('customers')">View All</button></div>
+            <table>
+              <thead><tr><th>Name</th><th>Wing/Flat</th><th>Pattern</th><th>Status</th></tr></thead>
+              <tbody id="dash-recent-customers"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="flex-between mb16"><div style="font-weight:600;">Current Prices</div><button class="btn btn-outline btn-sm" onclick="showPage('products')">Manage</button></div>
+            <table>
+              <thead><tr><th>Product</th><th>Company</th><th>Price/L</th></tr></thead>
+              <tbody id="dash-prices"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DELIVERIES ─────────────────────────────────────── -->
+      <div id="page-deliveries" class="page">
+        <div class="flex-between mb16">
+          <div class="flex-center gap12">
+            <input type="date" class="form-input" id="delivery-date" style="width:150px;" onchange="loadDeliveries()">
+            <select class="form-input" id="delivery-status-filter" onchange="loadDeliveries()" style="width:140px;">
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="delivered">Delivered</option>
+              <option value="skipped">Skipped</option>
+              <option value="not_delivered">Not Delivered</option>
+            </select>
+            <div class="search-bar"><i class="ti ti-search"></i><input type="text" placeholder="Search customer..." id="delivery-search" oninput="filterDeliveries(this.value)"></div>
+          </div>
+          <div class="flex-center gap8">
+            <button class="btn btn-outline btn-sm" onclick="generateDeliveries()"><i class="ti ti-refresh"></i> Generate Rows</button>
+            <button class="btn btn-primary btn-sm" onclick="bulkMarkDelivered()"><i class="ti ti-checks"></i> Mark All Delivered</button>
+          </div>
+        </div>
+
+        <!-- Summary bar -->
+        <div style="display:flex;gap:10px;margin-bottom:16px;" id="delivery-summary-bar"></div>
+
+        <div class="card">
+          <div class="delivery-row delivery-hdr" style="padding:8px 12px;">
+            <div>Customer</div><div>Product</div><div>Qty</div><div>Amount</div><div>Status</div><div>Actions</div>
+          </div>
+          <div id="delivery-list">
+            <div style="padding:24px;text-align:center;color:var(--text3);">Select a date to load deliveries.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CUSTOMERS ──────────────────────────────────────── -->
+      <div id="page-customers" class="page">
+        <div class="flex-between mb16">
+          <div class="search-bar"><i class="ti ti-search"></i><input type="text" placeholder="Search by name, email, flat..." id="customer-search" oninput="searchCustomers(this.value)" style="width:260px;"></div>
+          <div class="flex-center gap8">
+            <span id="customer-count" style="font-size:12px;color:var(--text3);"></span>
+          </div>
+        </div>
+
+        <!-- Stats row -->
+        <div style="display:flex;gap:10px;margin-bottom:16px;">
+          <div class="card-sm flex-center gap8" style="flex:1;"><i class="ti ti-users" style="color:var(--green);font-size:16px;"></i><div><div style="font-size:15px;font-weight:600;" id="cstat-total">0</div><div style="font-size:10px;color:var(--text3);">Total</div></div></div>
+          <div class="card-sm flex-center gap8" style="flex:1;"><i class="ti ti-user-check" style="color:var(--green);font-size:16px;"></i><div><div style="font-size:15px;font-weight:600;" id="cstat-active">0</div><div style="font-size:10px;color:var(--text3);">Active</div></div></div>
+          <div class="card-sm flex-center gap8" style="flex:1;"><i class="ti ti-mail-check" style="color:var(--blue);font-size:16px;"></i><div><div style="font-size:15px;font-weight:600;" id="cstat-verified">0</div><div style="font-size:10px;color:var(--text3);">Verified</div></div></div>
+          <div class="card-sm flex-center gap8" style="flex:1;"><i class="ti ti-user-plus" style="color:var(--amber);font-size:16px;"></i><div><div style="font-size:15px;font-weight:600;" id="cstat-new">0</div><div style="font-size:10px;color:var(--text3);">New This Month</div></div></div>
+        </div>
+
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Name</th><th>Wing/Flat</th><th>Mobile</th><th>Pattern</th><th>Status</th><th>Verified</th><th>Actions</th></tr></thead>
+              <tbody id="customers-table-body">
+                <tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="customers-pagination" style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;font-size:12px;color:var(--text3);"></div>
+        </div>
+      </div>
+
+      <!-- ── PAYMENTS ───────────────────────────────────────── -->
+      <div id="page-payments" class="page">
+        <div class="flex-between mb16">
+          <div class="flex-center gap8">
+            <select class="form-input" id="pay-month" style="width:130px;" onchange="loadPayments()">
+              <option value="1">January</option><option value="2">February</option>
+              <option value="3">March</option><option value="4">April</option>
+              <option value="5">May</option><option value="6" selected>June</option>
+              <option value="7">July</option><option value="8">August</option>
+              <option value="9">September</option><option value="10">October</option>
+              <option value="11">November</option><option value="12">December</option>
+            </select>
+            <input type="number" class="form-input" id="pay-year" value="2026" style="width:90px;" onchange="loadPayments()">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('record-payment-modal')"><i class="ti ti-plus"></i> Record Payment</button>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-bottom:20px;" id="payment-summary-cards"></div>
+
+        <div class="card">
+          <div class="flex-between mb12">
+            <div style="font-weight:600;">Outstanding Payments</div>
+            <div class="search-bar"><i class="ti ti-search"></i><input type="text" placeholder="Search..." id="pay-search" oninput="filterPayments(this.value)" style="width:180px;"></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Customer</th><th>Wing/Flat</th><th>Month</th><th>Billed</th><th>Paid</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="payments-table-body">
+                <tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── REPORTS ────────────────────────────────────────── -->
+      <div id="page-reports" class="page">
+        <div class="grid-2 mb24">
+          <div class="card">
+            <div class="flex-between mb16">
+              <div style="font-weight:600;">Monthly Revenue (Last 6 Months)</div>
+              <button class="btn btn-outline btn-sm" onclick="exportCSV('deliveries')"><i class="ti ti-download"></i> Export</button>
+            </div>
+            <div id="revenue-chart-wrap">
+              <div class="chart-bar-wrap" id="revenue-chart" style="height:120px;"></div>
+              <div style="display:flex;gap:6px;margin-top:4px;" id="revenue-chart-labels"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="flex-between mb16">
+              <div style="font-weight:600;">Wing-wise Summary</div>
+              <input type="date" class="form-input" id="wing-summary-date" style="width:140px;" onchange="loadWingSummary()">
+            </div>
+            <div id="wing-summary-table"></div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="flex-between mb16">
+              <div style="font-weight:600;">Product Totals — <span id="report-month-label">June 2026</span></div>
+              <div class="flex-center gap8">
+                <select class="form-input" id="report-month" style="width:110px;" onchange="loadMonthReport()">
+                  <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
+                  <option value="4">Apr</option><option value="5">May</option><option value="6" selected>Jun</option>
+                  <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
+                  <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+                </select>
+                <input type="number" class="form-input" id="report-year" value="2026" style="width:80px;" onchange="loadMonthReport()">
+              </div>
+            </div>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Product</th><th>Company</th><th>Total Qty</th><th>Revenue</th></tr></thead>
+              <tbody id="product-totals-body"></tbody>
+            </table></div>
+          </div>
+          <div class="card">
+            <div class="flex-between mb16"><div style="font-weight:600;">Export Data</div></div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <button class="btn btn-outline" onclick="exportCSV('customers')" style="justify-content:flex-start;"><i class="ti ti-users"></i> Export Customer List (CSV)</button>
+              <button class="btn btn-outline" onclick="exportCSV('deliveries')" style="justify-content:flex-start;"><i class="ti ti-truck-delivery"></i> Export Monthly Deliveries (CSV)</button>
+              <button class="btn btn-outline" onclick="exportCSV('payments')" style="justify-content:flex-start;"><i class="ti ti-wallet"></i> Export Payment Report (CSV)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PRODUCTS ───────────────────────────────────────── -->
+      <div id="page-products" class="page">
+        <div class="flex-between mb16">
+          <div style="font-weight:600;font-size:15px;">Products & Pricing</div>
+          <div class="flex-center gap8">
+            <button class="btn btn-outline btn-sm" onclick="openModal('add-company-modal')"><i class="ti ti-building"></i> Add Company</button>
+            <button class="btn btn-primary btn-sm" onclick="openModal('add-product-modal')"><i class="ti ti-plus"></i> Add Product</button>
+          </div>
+        </div>
+        <div id="products-grid">Loading...</div>
+      </div>
+
+      <!-- ── NOTIFICATIONS ──────────────────────────────────── -->
+      <div id="page-notifications" class="page">
+        <div class="grid-2">
+          <div class="card">
+            <div style="font-weight:600;margin-bottom:16px;">Send Notification</div>
+            <div class="form-group mb8"><label class="form-label">Target</label>
+              <select class="form-input" id="notif-target">
+                <option value="0">All Customers (Broadcast)</option>
+              </select>
+            </div>
+            <div class="form-group mb8"><label class="form-label">Title</label>
+              <input class="form-input" id="notif-title" placeholder="e.g. Price Change Notice">
+            </div>
+            <div class="form-group mb16"><label class="form-label">Message</label>
+              <textarea class="form-input" id="notif-message" rows="4" placeholder="Write your message..."></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="sendNotification()"><i class="ti ti-send"></i> Send Notification</button>
+          </div>
+          <div class="card">
+            <div style="font-weight:600;margin-bottom:16px;">Quick Announcements</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-outline" onclick="quickNotif('holiday','No delivery tomorrow (Holiday). Delivery resumes day after.')"><i class="ti ti-calendar-off"></i> Holiday Notice</button>
+              <button class="btn btn-outline" onclick="quickNotif('price','Milk prices have been updated. Check your app for the latest rates.')"><i class="ti ti-tag"></i> Price Change Alert</button>
+              <button class="btn btn-outline" onclick="quickNotif('payment','Monthly bills are ready. Please clear your dues at the earliest.')"><i class="ti ti-receipt"></i> Payment Due Reminder</button>
+              <button class="btn btn-outline" onclick="quickNotif('general','MilkRoute is running smoothly. Thank you for being a valued customer!')"><i class="ti ti-speakerphone"></i> General Announcement</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+
+</div><!-- /admin-app -->
+
+<!-- ── MODALS ──────────────────────────────────────────────────────── -->
+
+<!-- Record Payment -->
+<div class="modal-overlay" id="record-payment-modal" style="display:none;" onclick="closeModal('record-payment-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Record Payment <button class="btn-icon" onclick="closeModal('record-payment-modal')"><i class="ti ti-x"></i></button></div>
+    <div class="form-row form-row-2">
+      <div class="form-group"><label class="form-label">Customer</label>
+        <select class="form-input" id="pay-customer-id"><option value="">Select customer...</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Month</label>
+        <select class="form-input" id="pay-modal-month">
+          <option value="6">June 2026</option><option value="5">May 2026</option><option value="4">Apr 2026</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row form-row-2">
+      <div class="form-group"><label class="form-label">Amount (₹)</label><input class="form-input" type="number" id="pay-amount" placeholder="0.00"></div>
+      <div class="form-group"><label class="form-label">Method</label>
+        <select class="form-input" id="pay-method">
+          <option value="cash">Cash</option><option value="upi">UPI</option>
+          <option value="bank_transfer">Bank Transfer</option><option value="other">Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group mb16"><label class="form-label">Reference / Note</label><input class="form-input" id="pay-ref" placeholder="Transaction ID or note (optional)"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="submitPayment()"><i class="ti ti-check"></i> Record Payment</button>
+  </div>
+</div>
+
+<!-- Mark Delivery -->
+<div class="modal-overlay" id="mark-delivery-modal" style="display:none;" onclick="closeModal('mark-delivery-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Update Delivery <button class="btn-icon" onclick="closeModal('mark-delivery-modal')"><i class="ti ti-x"></i></button></div>
+    <input type="hidden" id="mark-delivery-id">
+    <div class="form-row form-row-2">
+      <div class="form-group"><label class="form-label">Status</label>
+        <select class="form-input" id="mark-status">
+          <option value="delivered">Delivered</option>
+          <option value="not_delivered">Not Delivered</option>
+          <option value="skipped">Skipped</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Qty Delivered (L)</label>
+        <input class="form-input" type="number" step="0.5" id="mark-qty" value="1.0">
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px;" onclick="submitMarkDelivery()"><i class="ti ti-check"></i> Update</button>
+  </div>
+</div>
+
+<!-- Add Product -->
+<div class="modal-overlay" id="add-product-modal" style="display:none;" onclick="closeModal('add-product-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Add Product <button class="btn-icon" onclick="closeModal('add-product-modal')"><i class="ti ti-x"></i></button></div>
+    <div class="form-group mb8"><label class="form-label">Company</label>
+      <select class="form-input" id="new-product-company"><option value="">Select...</option></select>
+    </div>
+    <div class="form-group mb8"><label class="form-label">Product Name</label><input class="form-input" id="new-product-name" placeholder="e.g. Amul Taaza"></div>
+    <div class="form-group mb8"><label class="form-label">Description</label><input class="form-input" id="new-product-desc" placeholder="e.g. Standardised toned milk"></div>
+    <div class="form-group mb16"><label class="form-label">Initial Price (₹/L)</label><input class="form-input" type="number" step="0.5" id="new-product-price" placeholder="0.00"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="submitAddProduct()"><i class="ti ti-plus"></i> Add Product</button>
+  </div>
+</div>
+
+<!-- Set Price -->
+<div class="modal-overlay" id="set-price-modal" style="display:none;" onclick="closeModal('set-price-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Update Price <button class="btn-icon" onclick="closeModal('set-price-modal')"><i class="ti ti-x"></i></button></div>
+    <input type="hidden" id="price-product-id">
+    <div style="background:var(--greendim);border-radius:8px;padding:10px;font-size:12px;color:var(--text2);margin-bottom:16px;">
+      <i class="ti ti-info-circle" style="color:var(--green);vertical-align:-2px;"></i>
+      Updating the price will automatically sync all pending delivery records and customer bills.
+    </div>
+    <div class="form-row form-row-2">
+      <div class="form-group"><label class="form-label">New Price (₹/L)</label><input class="form-input" type="number" step="0.5" id="new-price-val"></div>
+      <div class="form-group"><label class="form-label">Effective From</label><input class="form-input" type="date" id="new-price-date"></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px;" onclick="submitSetPrice()"><i class="ti ti-check"></i> Update Price & Sync Bills</button>
+  </div>
+</div>
+
+<!-- Add Company -->
+<div class="modal-overlay" id="add-company-modal" style="display:none;" onclick="closeModal('add-company-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Add Company <button class="btn-icon" onclick="closeModal('add-company-modal')"><i class="ti ti-x"></i></button></div>
+    <div class="form-group mb8"><label class="form-label">Company Name</label><input class="form-input" id="new-co-name" placeholder="e.g. Mahananda"></div>
+    <div class="form-group mb16"><label class="form-label">Tagline</label><input class="form-input" id="new-co-tagline" placeholder="e.g. Pure & fresh"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="showToast('Company added!','success');closeModal('add-company-modal');"><i class="ti ti-plus"></i> Add Company</button>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────
+var BASE = ''; // Set to your domain in production e.g. 'https://yourdomain.com'
+var allCustomers = [], allDeliveries = [], allPayments = [];
+var currentPage = 1;
+
+// ── Mock data (replaces API calls in demo) ─────────────────
+var MOCK = {
+  customers: [
+    {id:1,name:'Rahul Sharma',wing:'I',flat_number:'1104',mobile:'9876543210',delivery_pattern:'alternate',is_active:1,email_verified:1,created_at:'2026-06-01'},
+    {id:2,name:'Pranav Tonde',wing:'A',flat_number:'101',mobile:'9876543211',delivery_pattern:'daily',is_active:1,email_verified:1,created_at:'2026-06-02'},
+    {id:3,name:'Sneha Patil',wing:'B',flat_number:'204',mobile:'9876543212',delivery_pattern:'daily',is_active:1,email_verified:1,created_at:'2026-06-03'},
+    {id:4,name:'Amit Desai',wing:'C',flat_number:'301',mobile:'9876543213',delivery_pattern:'alternate',is_active:0,email_verified:1,created_at:'2026-06-04'},
+    {id:5,name:'Priya Shah',wing:'A',flat_number:'502',mobile:'9876543214',delivery_pattern:'daily',is_active:1,email_verified:0,created_at:'2026-06-05'},
+    {id:6,name:'Rohan More',wing:'D',flat_number:'102',mobile:'9876543215',delivery_pattern:'daily',is_active:1,email_verified:1,created_at:'2026-06-01'},
+    {id:7,name:'Kavita Joshi',wing:'B',flat_number:'401',mobile:'9876543216',delivery_pattern:'alternate',is_active:1,email_verified:1,created_at:'2026-06-02'},
+    {id:8,name:'Suresh Kumar',wing:'C',flat_number:'505',mobile:'9876543217',delivery_pattern:'daily',is_active:1,email_verified:1,created_at:'2026-06-03'},
+  ],
+  deliveries: [
+    {id:1,customer_name:'Rahul Sharma',wing:'I',flat_number:'1104',product_name:'Amul Taaza',company_name:'Amul',qty_ordered:1.5,price_at_delivery:32,amount:48,status:'delivered'},
+    {id:2,customer_name:'Rahul Sharma',wing:'I',flat_number:'1104',product_name:'Chitale Buffalo',company_name:'Chitale',qty_ordered:0.5,price_at_delivery:74,amount:37,status:'delivered'},
+    {id:3,customer_name:'Pranav Tonde',wing:'A',flat_number:'101',product_name:'Amul Taaza',company_name:'Amul',qty_ordered:1,price_at_delivery:32,amount:32,status:'pending'},
+    {id:4,customer_name:'Sneha Patil',wing:'B',flat_number:'204',product_name:'Amul Gold',company_name:'Amul',qty_ordered:1,price_at_delivery:67,amount:67,status:'pending'},
+    {id:5,customer_name:'Amit Desai',wing:'C',flat_number:'301',product_name:'Amul Taaza',company_name:'Amul',qty_ordered:0,price_at_delivery:32,amount:0,status:'skipped'},
+    {id:6,customer_name:'Priya Shah',wing:'A',flat_number:'502',product_name:'Chitale Buffalo',company_name:'Chitale',qty_ordered:1,price_at_delivery:74,amount:74,status:'not_delivered'},
+    {id:7,customer_name:'Rohan More',wing:'D',flat_number:'102',product_name:'Amul Taaza',company_name:'Amul',qty_ordered:1,price_at_delivery:32,amount:32,status:'pending'},
+    {id:8,customer_name:'Kavita Joshi',wing:'B',flat_number:'401',product_name:'Amul Slim & Trim',company_name:'Amul',qty_ordered:0.5,price_at_delivery:65,amount:32.5,status:'pending'},
+  ],
+  products: [
+    {id:1,name:'Amul Taaza',company_name:'Amul',current_price:32,description:'Standardised toned milk',is_active:1},
+    {id:2,name:'Amul Gold',company_name:'Amul',current_price:67,description:'Full cream milk',is_active:1},
+    {id:3,name:'Amul Cow Milk',company_name:'Amul',current_price:60,description:'Pure cow milk',is_active:1},
+    {id:4,name:'Amul Slim & Trim',company_name:'Amul',current_price:65,description:'Double toned milk',is_active:1},
+    {id:5,name:'Chitale Buffalo',company_name:'Chitale',current_price:74,description:'Rich buffalo milk',is_active:1},
+    {id:6,name:'Chitale Cow Milk',company_name:'Chitale',current_price:64,description:'Fresh cow milk',is_active:1},
+  ],
+  payments: [
+    {id:1,customer_id:1,customer_name:'Rahul Sharma',wing:'I',flat_number:'1104',month:6,year:2026,total_amount:1669,paid_amount:0,balance:1669,status:'unpaid'},
+    {id:2,customer_id:2,customer_name:'Pranav Tonde',wing:'A',flat_number:'101',month:6,year:2026,total_amount:2100,paid_amount:1000,balance:1100,status:'partial'},
+    {id:3,customer_id:3,customer_name:'Sneha Patil',wing:'B',flat_number:'204',month:6,year:2026,total_amount:1850,paid_amount:1850,balance:0,status:'paid'},
+    {id:4,customer_id:6,customer_name:'Rohan More',wing:'D',flat_number:'102',month:6,year:2026,total_amount:1400,paid_amount:0,balance:1400,status:'unpaid'},
+    {id:5,customer_id:7,customer_name:'Kavita Joshi',wing:'B',flat_number:'401',month:6,year:2026,total_amount:980,paid_amount:500,balance:480,status:'partial'},
+  ],
+};
+
+// ── Toast ──────────────────────────────────────────────────
+function showToast(msg,type='success'){
+  var t=document.getElementById('toast');
+  var ic=document.getElementById('toast-icon');
+  document.getElementById('toast-msg').textContent=msg;
+  t.className='toast show '+(type==='error'?'error':'success');
+  ic.className='ti '+(type==='error'?'ti-alert-circle':'ti-circle-check')+' toast-icon';
+  setTimeout(function(){t.className='toast';},3000);
+}
+
+// ── Modals ─────────────────────────────────────────────────
+function openModal(id){document.getElementById(id).style.display='flex';}
+function closeModal(id){document.getElementById(id).style.display='none';}
+
+// ── Auth ───────────────────────────────────────────────────
+function adminLogin(){
+  var email=document.getElementById('admin-email').value;
+  var pass=document.getElementById('admin-pass').value;
+  if(!email||!pass){showToast('Enter credentials','error');return;}
+  document.getElementById('login-page').style.display='none';
+  document.getElementById('admin-app').style.display='flex';
+  initDashboard();
+  showToast('Welcome, Super Admin!');
+}
+
+function adminLogout(){
+  document.getElementById('admin-app').style.display='none';
+  document.getElementById('login-page').style.display='flex';
+  showToast('Logged out.');
+}
+
+// ── Navigation ─────────────────────────────────────────────
+function showPage(name){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  document.getElementById('topbar-title').textContent = {
+    dashboard:'Dashboard', deliveries:'Daily Deliveries', customers:'Customers',
+    payments:'Payments', reports:'Reports & Analytics', products:'Products & Prices',
+    notifications:'Notifications'
+  }[name] || name;
+  if(name==='customers') loadCustomers();
+  if(name==='deliveries') initDeliveries();
+  if(name==='payments') loadPayments();
+  if(name==='products') loadProducts();
+  if(name==='reports') loadReports();
+}
+
+// ── Dashboard ──────────────────────────────────────────────
+function initDashboard(){
+  // Week chart
+  var days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  var vals=[210,198,225,180,215,230,187];
+  var max=Math.max(...vals);
+  var chart=document.getElementById('week-chart');
+  var labels=document.getElementById('week-chart-labels');
+  chart.innerHTML=''; labels.innerHTML='';
+  vals.forEach(function(v,i){
+    var bar=document.createElement('div');
+    bar.className='chart-bar';
+    bar.style.height=Math.round((v/max)*100)+'%';
+    bar.title=days[i]+': '+v+'L';
+    chart.appendChild(bar);
+    var lbl=document.createElement('div');
+    lbl.className='chart-bar-label'; lbl.style.flex='1'; lbl.textContent=days[i];
+    labels.appendChild(lbl);
+  });
+
+  // Outstanding
+  var list=document.getElementById('dash-outstanding-list');
+  var html='';
+  MOCK.payments.filter(function(p){return p.status!=='paid';}).slice(0,4).forEach(function(p){
+    html+='<div class="flex-between" style="padding:8px 0;border-bottom:1px solid var(--border);"><div><div style="font-size:12px;font-weight:500;">'+p.customer_name+'</div><div style="font-size:10px;color:var(--text3);">Wing '+p.wing+' / '+p.flat_number+'</div></div><div style="text-align:right;"><div class="'+(p.status==='partial'?'text-amber':'text-red')+' fw6">₹'+p.balance+'</div><span class="badge '+(p.status==='partial'?'badge-amber':'badge-red')+'">'+p.status+'</span></div></div>';
+  });
+  list.innerHTML=html;
+
+  // Recent customers
+  var tbody=document.getElementById('dash-recent-customers');
+  tbody.innerHTML=MOCK.customers.slice(0,5).map(function(c){
+    return '<tr><td style="font-size:12px;font-weight:500;">'+c.name+'</td><td style="font-size:11px;color:var(--text3);">'+c.wing+'/'+c.flat_number+'</td><td><span class="badge badge-gray">'+c.delivery_pattern+'</span></td><td><span class="badge '+(c.is_active?'badge-green':'badge-red')+'">'+(c.is_active?'Active':'Inactive')+'</span></td></tr>';
+  }).join('');
+
+  // Prices
+  var pbody=document.getElementById('dash-prices');
+  pbody.innerHTML=MOCK.products.map(function(p){
+    return '<tr><td style="font-size:12px;">'+p.name+'</td><td style="font-size:11px;color:var(--text3);">'+p.company_name+'</td><td class="text-green fw6">₹'+p.current_price+'/L</td></tr>';
+  }).join('');
+}
+
+// ── Deliveries ─────────────────────────────────────────────
+function initDeliveries(){
+  var dateInput=document.getElementById('delivery-date');
+  if(!dateInput.value) dateInput.value=new Date().toISOString().split('T')[0];
+  loadDeliveries();
+}
+
+function loadDeliveries(){
+  allDeliveries=[...MOCK.deliveries];
+  renderDeliveries(allDeliveries);
+  renderDeliverySummary();
+}
+
+function filterDeliveries(q){
+  var filtered=allDeliveries.filter(function(d){
+    return !q||d.customer_name.toLowerCase().includes(q.toLowerCase())||d.flat_number.includes(q);
+  });
+  renderDeliveries(filtered);
+}
+
+function renderDeliveries(list){
+  var statusFilter=document.getElementById('delivery-status-filter').value;
+  if(statusFilter) list=list.filter(function(d){return d.status===statusFilter;});
+  var html=list.map(function(d){
+    var statusBadge={
+      delivered:'<span class="badge badge-green"><span class="status-dot delivered"></span>Delivered</span>',
+      pending:'<span class="badge badge-amber"><span class="status-dot pending"></span>Pending</span>',
+      skipped:'<span class="badge badge-gray"><span class="status-dot skipped"></span>Skipped</span>',
+      not_delivered:'<span class="badge badge-red"><span class="status-dot not_delivered"></span>Not Delivered</span>',
+    }[d.status]||d.status;
+    return '<div class="delivery-row"><div><div style="font-size:12px;font-weight:500;">'+d.customer_name+'</div><div style="font-size:10px;color:var(--text3);">Wing '+d.wing+' / '+d.flat_number+'</div></div><div style="font-size:12px;">'+d.product_name+'<br><span style="font-size:10px;color:var(--text3);">'+d.company_name+'</span></div><div style="font-size:13px;font-weight:600;">'+d.qty_ordered+'L</div><div style="font-size:12px;font-weight:500;">₹'+(d.qty_ordered*d.price_at_delivery).toFixed(0)+'</div><div>'+statusBadge+'</div><div class="flex-center gap4"><button class="btn btn-primary btn-sm" onclick="openMarkDelivery('+d.id+','+d.qty_ordered+')"><i class="ti ti-edit" style="font-size:12px;"></i></button></div></div>';
+  }).join('');
+  document.getElementById('delivery-list').innerHTML=html||'<div style="padding:24px;text-align:center;color:var(--text3);">No deliveries found.</div>';
+}
+
+function renderDeliverySummary(){
+  var summary={pending:0,delivered:0,skipped:0,not_delivered:0};
+  MOCK.deliveries.forEach(function(d){summary[d.status]=(summary[d.status]||0)+1;});
+  var bar=document.getElementById('delivery-summary-bar');
+  bar.innerHTML=[
+    {label:'Delivered',count:summary.delivered,cls:'badge-green'},
+    {label:'Pending',count:summary.pending,cls:'badge-amber'},
+    {label:'Skipped',count:summary.skipped,cls:'badge-gray'},
+    {label:'Not Delivered',count:summary.not_delivered,cls:'badge-red'},
+  ].map(function(s){return '<span class="badge '+s.cls+'" style="padding:6px 12px;font-size:12px;"><b>'+s.count+'</b>&nbsp;'+s.label+'</span>';}).join('');
+}
+
+function openMarkDelivery(id,qty){
+  document.getElementById('mark-delivery-id').value=id;
+  document.getElementById('mark-qty').value=qty;
+  openModal('mark-delivery-modal');
+}
+
+function submitMarkDelivery(){
+  var id=document.getElementById('mark-delivery-id').value;
+  var status=document.getElementById('mark-status').value;
+  var qty=document.getElementById('mark-qty').value;
+  var d=MOCK.deliveries.find(function(x){return x.id==id;});
+  if(d){d.status=status;d.qty_delivered=parseFloat(qty);}
+  closeModal('mark-delivery-modal');
+  renderDeliveries(allDeliveries);
+  renderDeliverySummary();
+  showToast('Delivery updated. Customer notified.');
+}
+
+function bulkMarkDelivered(){
+  MOCK.deliveries.forEach(function(d){if(d.status==='pending'){d.status='delivered';d.qty_delivered=d.qty_ordered;}});
+  renderDeliveries(allDeliveries);
+  renderDeliverySummary();
+  showToast('All pending deliveries marked as delivered!');
+}
+
+function generateDeliveries(){showToast('Delivery rows generated for tomorrow.');}
+
+// ── Customers ──────────────────────────────────────────────
+function loadCustomers(){
+  allCustomers=[...MOCK.customers];
+  document.getElementById('cstat-total').textContent=allCustomers.length;
+  document.getElementById('cstat-active').textContent=allCustomers.filter(function(c){return c.is_active;}).length;
+  document.getElementById('cstat-verified').textContent=allCustomers.filter(function(c){return c.email_verified;}).length;
+  document.getElementById('cstat-new').textContent='4';
+  renderCustomers(allCustomers);
+}
+
+function searchCustomers(q){
+  var filtered=allCustomers.filter(function(c){
+    var s=(c.name+c.wing+c.flat_number+c.mobile).toLowerCase();
+    return s.includes(q.toLowerCase());
+  });
+  renderCustomers(filtered);
+}
+
+function renderCustomers(list){
+  var tbody=document.getElementById('customers-table-body');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">No customers found.</td></tr>';return;}
+  tbody.innerHTML=list.map(function(c,i){
+    return '<tr><td style="color:var(--text3);">'+c.id+'</td><td style="font-size:12px;font-weight:500;">'+c.name+'</td><td style="font-size:11px;">'+c.wing+' / '+c.flat_number+'</td><td style="font-size:11px;color:var(--text3);">'+c.mobile+'</td><td><span class="badge badge-gray">'+c.delivery_pattern+'</span></td><td><span class="badge '+(c.is_active?'badge-green':'badge-red')+'" style="cursor:pointer;" onclick="toggleCustomer('+c.id+')">'+(c.is_active?'Active':'Inactive')+'</span></td><td><span class="badge '+(c.email_verified?'badge-green':'badge-amber')+'">'+(c.email_verified?'Verified':'Pending')+'</span></td><td><div class="flex-center gap4"><button class="btn-icon" onclick="showToast(\'Viewing '+c.name+'\')" title="View"><i class="ti ti-eye" style="font-size:13px;"></i></button><button class="btn-icon" onclick="openPayForCustomer('+c.id+',\''+c.name+'\')" title="Record Payment"><i class="ti ti-wallet" style="font-size:13px;"></i></button><button class="btn-icon" onclick="showToast(\'Notify: '+c.name+'\')" title="Notify"><i class="ti ti-bell" style="font-size:13px;"></i></button></div></td></tr>';
+  }).join('');
+  document.getElementById('customer-count').textContent=list.length+' customers';
+}
+
+function toggleCustomer(id){
+  var c=MOCK.customers.find(function(x){return x.id===id;});
+  if(c){c.is_active=c.is_active?0:1;}
+  renderCustomers(allCustomers);
+  showToast('Customer status updated.');
+}
+
+function openPayForCustomer(id,name){
+  document.getElementById('pay-customer-id').innerHTML='<option value="'+id+'">'+name+'</option>';
+  openModal('record-payment-modal');
+}
+
+// ── Payments ───────────────────────────────────────────────
+function loadPayments(){
+  allPayments=[...MOCK.payments];
+  var total=allPayments.reduce(function(a,p){return a+p.total_amount;},0);
+  var collected=allPayments.reduce(function(a,p){return a+p.paid_amount;},0);
+  var outstanding=allPayments.reduce(function(a,p){return a+p.balance;},0);
+  var cards=document.getElementById('payment-summary-cards');
+  cards.innerHTML=[
+    {label:'Total Billed',val:'₹'+total.toLocaleString(),cls:'text-green'},
+    {label:'Collected',val:'₹'+collected.toLocaleString(),cls:'text-green'},
+    {label:'Outstanding',val:'₹'+outstanding.toLocaleString(),cls:'text-red'},
+    {label:'Fully Paid',val:allPayments.filter(function(p){return p.status==='paid';}).length,cls:'text-green'},
+  ].map(function(s){
+    return '<div class="card-sm" style="flex:1;"><div style="font-size:10px;color:var(--text3);">'+s.label+'</div><div style="font-size:18px;font-weight:700;'+s.cls.replace('text-','color:')+' !important" class="'+s.cls+'">'+s.val+'</div></div>';
+  }).join('');
+  renderPayments(allPayments);
+}
+
+function filterPayments(q){
+  var filtered=allPayments.filter(function(p){
+    return !q||p.customer_name.toLowerCase().includes(q.toLowerCase())||p.flat_number.includes(q);
+  });
+  renderPayments(filtered);
+}
+
+function renderPayments(list){
+  var tbody=document.getElementById('payments-table-body');
+  tbody.innerHTML=list.map(function(p){
+    var months=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var badge={paid:'badge-green',partial:'badge-amber',unpaid:'badge-red'}[p.status]||'badge-gray';
+    return '<tr><td style="font-size:12px;font-weight:500;">'+p.customer_name+'</td><td style="font-size:11px;color:var(--text3);">'+p.wing+' / '+p.flat_number+'</td><td style="font-size:11px;">'+months[p.month]+' '+p.year+'</td><td style="font-weight:500;">₹'+p.total_amount.toLocaleString()+'</td><td class="text-green">₹'+p.paid_amount.toLocaleString()+'</td><td class="'+(p.balance>0?'text-red':'text-green')+' fw6">₹'+p.balance.toLocaleString()+'</td><td><span class="badge '+badge+'">'+p.status+'</span></td><td><button class="btn btn-primary btn-sm" onclick="openPayForCustomer('+p.customer_id+',\''+p.customer_name+'\')"><i class="ti ti-plus" style="font-size:11px;"></i> Pay</button></td></tr>';
+  }).join('');
+}
+
+function submitPayment(){
+  var cid=document.getElementById('pay-customer-id').value;
+  var amount=parseFloat(document.getElementById('pay-amount').value)||0;
+  if(!cid||!amount){showToast('Customer and amount required','error');return;}
+  var p=MOCK.payments.find(function(x){return x.customer_id==cid;});
+  if(p){p.paid_amount+=amount;p.balance=Math.max(0,p.total_amount-p.paid_amount);p.status=p.balance<=0?'paid':(p.paid_amount>0?'partial':'unpaid');}
+  closeModal('record-payment-modal');
+  loadPayments();
+  showToast('Payment recorded. Customer notified!');
+}
+
+// ── Products ───────────────────────────────────────────────
+function loadProducts(){
+  var companies=['Amul','Chitale'];
+  var grid=document.getElementById('products-grid');
+  var html='';
+  companies.forEach(function(co){
+    var prods=MOCK.products.filter(function(p){return p.company_name===co;});
+    html+='<div style="margin-bottom:20px;"><div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px;">'+co+'</div>';
+    html+='<div class="card"><div class="table-wrap"><table><thead><tr><th>Product</th><th>Description</th><th>Price/L</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+    prods.forEach(function(p){
+      html+='<tr><td style="font-weight:500;">'+p.name+'</td><td style="color:var(--text3);font-size:11px;">'+p.description+'</td><td class="text-green fw6">₹'+p.current_price+'/L</td><td><span class="badge '+(p.is_active?'badge-green':'badge-gray')+'">'+(p.is_active?'Active':'Inactive')+'</span></td><td><div class="flex-center gap4"><button class="btn btn-primary btn-sm" onclick="openSetPrice('+p.id+','+p.current_price+')"><i class="ti ti-tag" style="font-size:11px;"></i> Set Price</button><button class="btn btn-outline btn-sm" onclick="showToast(\'History for '+p.name+'\')"><i class="ti ti-history" style="font-size:11px;"></i></button></div></td></tr>';
+    });
+    html+='</tbody></table></div></div></div>';
+  });
+  grid.innerHTML=html;
+
+  // Populate add-product company select
+  document.getElementById('new-product-company').innerHTML=companies.map(function(co,i){return '<option value="'+(i+1)+'">'+co+'</option>';}).join('');
+}
+
+function openSetPrice(id,currentPrice){
+  document.getElementById('price-product-id').value=id;
+  document.getElementById('new-price-val').value=currentPrice;
+  document.getElementById('new-price-date').value=new Date().toISOString().split('T')[0];
+  openModal('set-price-modal');
+}
+
+function submitSetPrice(){
+  var id=document.getElementById('price-product-id').value;
+  var price=parseFloat(document.getElementById('new-price-val').value);
+  if(!price){showToast('Enter a valid price','error');return;}
+  var p=MOCK.products.find(function(x){return x.id==id;});
+  if(p) p.current_price=price;
+  closeModal('set-price-modal');
+  loadProducts();
+  showToast('Price updated. Bills synced. Customers notified!');
+}
+
+function submitAddProduct(){
+  var name=document.getElementById('new-product-name').value;
+  if(!name){showToast('Product name required','error');return;}
+  var coId=parseInt(document.getElementById('new-product-company').value);
+  var coName=['Amul','Chitale'][coId-1]||'Amul';
+  var price=parseFloat(document.getElementById('new-product-price').value)||0;
+  MOCK.products.push({id:MOCK.products.length+1,name:name,company_name:coName,current_price:price,description:document.getElementById('new-product-desc').value,is_active:1});
+  closeModal('add-product-modal');
+  loadProducts();
+  showToast('Product added!');
+}
+
+// ── Reports ────────────────────────────────────────────────
+function loadReports(){
+  // Revenue chart
+  var months=['Jan','Feb','Mar','Apr','May','Jun'];
+  var vals=[38000,42000,39000,44000,51000,48000];
+  var max=Math.max(...vals);
+  var chart=document.getElementById('revenue-chart');
+  var labels=document.getElementById('revenue-chart-labels');
+  chart.innerHTML=''; labels.innerHTML='';
+  vals.forEach(function(v,i){
+    var bar=document.createElement('div'); bar.className='chart-bar';
+    bar.style.height=Math.round((v/max)*100)+'%';
+    bar.title=months[i]+': ₹'+v.toLocaleString();
+    chart.appendChild(bar);
+    var lbl=document.createElement('div'); lbl.className='chart-bar-label'; lbl.style.flex='1'; lbl.textContent=months[i];
+    labels.appendChild(lbl);
+  });
+  // Product totals
+  document.getElementById('product-totals-body').innerHTML=MOCK.products.map(function(p){
+    var qty=Math.floor(Math.random()*50+10);
+    return '<tr><td>'+p.name+'</td><td style="color:var(--text3);">'+p.company_name+'</td><td>'+qty+'L</td><td class="text-green fw6">₹'+(qty*p.current_price).toLocaleString()+'</td></tr>';
+  }).join('');
+  // Wing summary
+  document.getElementById('wing-summary-date').value=new Date().toISOString().split('T')[0];
+  loadWingSummary();
+}
+
+function loadWingSummary(){
+  var wings=['A','B','C','D','I'];
+  document.getElementById('wing-summary-table').innerHTML='<table><thead><tr><th>Wing</th><th>Customers</th><th>Total Litres</th><th>Delivered</th><th>Pending</th></tr></thead><tbody>'+
+  wings.map(function(w){
+    var cust=Math.floor(Math.random()*20+5);
+    var del=Math.floor(cust*0.8);
+    var pend=cust-del;
+    return '<tr><td style="font-weight:600;">Wing '+w+'</td><td>'+cust+'</td><td class="text-green">'+(cust*1.2).toFixed(1)+'L</td><td class="text-green">'+del+'</td><td class="text-amber">'+pend+'</td></tr>';
+  }).join('')+'</tbody></table>';
+}
+
+function loadMonthReport(){
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var m=parseInt(document.getElementById('report-month').value)-1;
+  var y=document.getElementById('report-year').value;
+  document.getElementById('report-month-label').textContent=months[m]+' '+y;
+}
+
+function exportCSV(type){showToast('Exporting '+type+' data...');}
+
+// ── Notifications ──────────────────────────────────────────
+function sendNotification(){
+  var title=document.getElementById('notif-title').value;
+  var msg=document.getElementById('notif-message').value;
+  if(!title||!msg){showToast('Title and message required','error');return;}
+  document.getElementById('notif-title').value='';
+  document.getElementById('notif-message').value='';
+  showToast('Notification sent to all customers!');
+}
+
+function quickNotif(type,msg){
+  document.getElementById('notif-title').textContent='';
+  var titles={holiday:'Holiday Notice',price:'Price Change Alert',payment:'Payment Due',general:'Announcement'};
+  document.getElementById('notif-title').value=titles[type];
+  document.getElementById('notif-message').value=msg;
+  showToast('Template loaded. Click Send to broadcast.');
+}
+
+function globalSearch(q){
+  if(q.length>1){showPage('customers');searchCustomers(q);}
+}
+
+// ── Init ───────────────────────────────────────────────────
+// Auto-init delivery date
+document.addEventListener('DOMContentLoaded',function(){
+  var di=document.getElementById('delivery-date');
+  if(di) di.value=new Date().toISOString().split('T')[0];
+});
+</script>
+</body>
+</html>
