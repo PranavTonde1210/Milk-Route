@@ -267,7 +267,7 @@ def seed():
     db.commit()
     print("✅ Database seeded")
 
-def generate_deliveries_for(customer_id, for_date):
+def generate_deliveries_for(customer_id, for_date, force_refresh=False):
     cust = fetchone("SELECT * FROM customers WHERE id=?", (customer_id,))
     if not cust: return
 
@@ -284,16 +284,37 @@ def generate_deliveries_for(customer_id, for_date):
         "SELECT * FROM subscriptions WHERE customer_id=? AND is_active=1", (customer_id,))
 
     db = get_db()
+
+    # Get existing pending rows so we can refresh qty if subs changed
+    existing_pending = {
+        r['product_id']: r for r in fetchall(
+            "SELECT * FROM daily_deliveries WHERE customer_id=? AND delivery_date=? AND status='pending'",
+            (customer_id, for_date))
+    }
+    active_product_ids = {s['product_id'] for s in subs}
+
+    # Remove pending rows for products no longer subscribed
+    for pid in list(existing_pending.keys()):
+        if pid not in active_product_ids:
+            db.execute("DELETE FROM daily_deliveries WHERE customer_id=? AND product_id=? AND delivery_date=? AND status='pending'",
+                       (customer_id, pid, for_date))
+
     for sub in subs:
         price = get_price(sub['product_id'], for_date) or 0
         status = 'skipped' if (skip or is_alt_skip) else 'pending'
         skip_reason = 'customer_request' if skip else ('alternate_day' if is_alt_skip else None)
         qty = 0 if status == 'skipped' else sub['default_qty']
         try:
-            db.execute("""INSERT OR IGNORE INTO daily_deliveries
-                (customer_id,product_id,delivery_date,qty_ordered,status,skip_reason,price_at_delivery,marked_by)
-                VALUES(?,?,?,?,?,?,?,?)""",
-                (customer_id, sub['product_id'], for_date, qty, status, skip_reason, price, 'system'))
+            # If already exists as pending, update qty to match current default
+            if sub['product_id'] in existing_pending and status == 'pending':
+                db.execute(
+                    "UPDATE daily_deliveries SET qty_ordered=?,price_at_delivery=? WHERE customer_id=? AND product_id=? AND delivery_date=? AND status='pending'",
+                    (qty, price, customer_id, sub['product_id'], for_date))
+            else:
+                db.execute("""INSERT OR IGNORE INTO daily_deliveries
+                    (customer_id,product_id,delivery_date,qty_ordered,status,skip_reason,price_at_delivery,marked_by)
+                    VALUES(?,?,?,?,?,?,?,?)""",
+                    (customer_id, sub['product_id'], for_date, qty, status, skip_reason, price, 'system'))
         except: pass
     db.commit()
 
@@ -437,7 +458,7 @@ def customer_dashboard():
 
     if action == 'home':
         cust = fetchone("SELECT id,name,email,wing,flat_number,delivery_pattern,alternate_start FROM customers WHERE id=?", (cid,))
-        generate_deliveries_for(cid, today())
+        generate_deliveries_for(cid, today(), force_refresh=True)
         today_dels = fetchall("""
             SELECT dd.*,mp.name as product_name,mc.name as company_name
             FROM daily_deliveries dd
@@ -445,20 +466,28 @@ def customer_dashboard():
             JOIN milk_companies mc ON mc.id=mp.company_id
             WHERE dd.customer_id=? AND dd.delivery_date=?""", (cid, today()))
         tmrw = (date.today() + timedelta(days=1)).isoformat()
-        generate_deliveries_for(cid, tmrw)
+        generate_deliveries_for(cid, tmrw, force_refresh=True)
         tmrw_dels = fetchall("""
-            SELECT dd.*,mp.name as product_name FROM daily_deliveries dd
+            SELECT dd.*,mp.name as product_name,mc.name as company_name
+            FROM daily_deliveries dd
             JOIN milk_products mp ON mp.id=dd.product_id
-            WHERE dd.customer_id=? AND dd.delivery_date=? AND dd.status!='skipped'""", (cid, tmrw))
+            JOIN milk_companies mc ON mc.id=mp.company_id
+            WHERE dd.customer_id=? AND dd.delivery_date=?""", (cid, tmrw))
+        sync_payment(cid, current_month(), current_year())
         payment = fetchone("SELECT * FROM payments WHERE customer_id=? AND month=? AND year=?",
                            (cid, current_month(), current_year())) or {'balance': 0}
         unread = fetchval("SELECT COUNT(*) FROM notifications WHERE (customer_id=? OR customer_id IS NULL) AND is_read=0", (cid,)) or 0
+        is_alt_skip_today = False
+        if cust['delivery_pattern'] == 'alternate' and cust['alternate_start']:
+            is_alt_skip_today = not is_alternate_delivery(cust['alternate_start'], today())
         return ok({
             'customer': cust, 'today_deliveries': today_dels,
             'tomorrow_deliveries': tmrw_dels, 'unread_notifications': unread,
             'balance_due': payment.get('balance', 0),
             'today': today(), 'tomorrow': tmrw,
+            'is_alt_skip_today': is_alt_skip_today,
         })
+
 
     if action == 'update-qty':
         pid = data.get('product_id'); qty = data.get('qty', 0)
@@ -470,15 +499,19 @@ def customer_dashboard():
 
     if action == 'skip':
         stype = data.get('type', 'today')
-        ds = today() if stype == 'today' else data.get('date_start', today())
-        de = today() if stype == 'today' else data.get('date_end', today())
+        ds = data.get('date_start', today())
+        de = data.get('date_end', today())
+        if stype == 'today':
+            ds = today(); de = today()
+        if ds > de:
+            return err('End date must be after start date.')
         run("INSERT INTO skip_requests(customer_id,skip_date_start,skip_date_end,reason) VALUES(?,?,?,?)",
             (cid, ds, de, 'customer_request'))
         run("""UPDATE daily_deliveries SET status='skipped',skip_reason='customer_request',qty_ordered=0
                WHERE customer_id=? AND delivery_date BETWEEN ? AND ? AND status='pending'""",
             (cid, ds, de))
         sync_payment(cid, current_month(), current_year())
-        return ok({}, 'Skip saved.')
+        return ok({'date_start': ds, 'date_end': de}, f'Skip saved from {ds} to {de}.')
 
     if action == 'cancel-skip':
         d = data.get('date', today())
@@ -505,11 +538,18 @@ def customer_dashboard():
         pid = data.get('product_id'); qty = data.get('qty', 0)
         if not pid: return err('product_id required.')
         run("INSERT OR REPLACE INTO subscriptions(customer_id,product_id,default_qty,is_active) VALUES(?,?,?,1)", (cid, pid, qty))
+        # Refresh tomorrow's delivery with new qty
+        tmrw = (date.today() + timedelta(days=1)).isoformat()
+        generate_deliveries_for(cid, tmrw, force_refresh=True)
         return ok({}, 'Subscription updated.')
 
     if action == 'subscription-remove':
         pid = data.get('product_id')
         run("UPDATE subscriptions SET is_active=0 WHERE customer_id=? AND product_id=?", (cid, pid))
+        # Remove tomorrow's pending delivery for this product
+        tmrw = (date.today() + timedelta(days=1)).isoformat()
+        run("DELETE FROM daily_deliveries WHERE customer_id=? AND product_id=? AND delivery_date>=? AND status='pending'",
+            (cid, pid, today()))
         return ok({}, 'Removed.')
 
     if action == 'calendar':
@@ -663,6 +703,42 @@ def admin_customers():
         add_notif(cid, data.get('title',''), data.get('message',''), 'general', session['admin_id'])
         return ok({}, 'Notification sent.')
 
+
+    if action == 'add-milk':
+        customer_id = int(data.get('customer_id', 0))
+        product_id  = int(data.get('product_id', 0))
+        qty         = float(data.get('qty', 1.0))
+        if not customer_id or not product_id: return err('customer_id and product_id required.')
+        run("INSERT OR REPLACE INTO subscriptions(customer_id,product_id,default_qty,is_active) VALUES(?,?,?,1)", (customer_id, product_id, qty))
+        generate_deliveries_for(customer_id, (date.today()+timedelta(days=1)).isoformat(), force_refresh=True)
+        add_notif(customer_id, 'Subscription Updated', 'A new milk product has been added to your subscription.', 'general', session['admin_id'])
+        return ok({}, 'Milk added to customer subscription.')
+
+    if action == 'remove-milk':
+        customer_id = int(data.get('customer_id', 0))
+        product_id  = int(data.get('product_id', 0))
+        if not customer_id or not product_id: return err('IDs required.')
+        run("UPDATE subscriptions SET is_active=0 WHERE customer_id=? AND product_id=?", (customer_id, product_id))
+        run("DELETE FROM daily_deliveries WHERE customer_id=? AND product_id=? AND delivery_date>=? AND status='pending'", (customer_id, product_id, today()))
+        add_notif(customer_id, 'Subscription Updated', 'A milk product has been removed from your subscription.', 'general', session['admin_id'])
+        return ok({}, 'Milk removed.')
+
+    if action == 'customer-subs':
+        cid_cs = int(request.args.get('id', 0))
+        if not cid_cs: return err('id required.')
+        subs = fetchall("""SELECT s.*,mp.name as product_name,mc.name as company_name FROM subscriptions s JOIN milk_products mp ON mp.id=s.product_id JOIN milk_companies mc ON mc.id=mp.company_id WHERE s.customer_id=?""", (cid_cs,))
+        all_prods = fetchall("""SELECT mp.*,mc.name as company_name FROM milk_products mp JOIN milk_companies mc ON mc.id=mp.company_id WHERE mp.is_active=1""")
+        return ok({'subscriptions': subs, 'all_products': all_prods})
+
+    if action == 'update-customer':
+        cid_u = int(data.get('id', 0))
+        if not cid_u: return err('id required.')
+        run("UPDATE customers SET name=?,mobile=?,wing=?,flat_number=?,delivery_pattern=?,updated_at=? WHERE id=?", (data.get('name'), data.get('mobile'), data.get('wing'), data.get('flat_number'), data.get('delivery_pattern','daily'), now(), cid_u))
+        return ok({}, 'Customer updated.')
+
+    return err('Unknown action.', 404)
+
+
     return err('Unknown action.', 404)
 
 # ─────────────────────────────────────────────────────────
@@ -728,6 +804,33 @@ def admin_deliveries():
             sync_payment(c['customer_id'], m, y)
             add_notif(c['customer_id'], 'Delivery Update', 'Your milk has been delivered today.', 'delivery', session['admin_id'])
         return ok({}, f'All deliveries marked for {d}.')
+
+    if action == 'export':
+        d = request.args.get('date', today())
+        rows = fetchall(
+            "SELECT c.wing,c.flat_number,c.name as customer_name,mp.name as product_name,mc.name as company_name,dd.qty_ordered,dd.qty_delivered,dd.status,dd.price_at_delivery FROM daily_deliveries dd JOIN customers c ON c.id=dd.customer_id JOIN milk_products mp ON mp.id=dd.product_id JOIN milk_companies mc ON mc.id=mp.company_id WHERE dd.delivery_date=? ORDER BY c.wing,c.flat_number,mp.name",
+            (d,))
+        from collections import OrderedDict
+        wings = OrderedDict()
+        for r in rows:
+            w = r['wing']; f = r['flat_number']
+            if w not in wings: wings[w] = OrderedDict()
+            if f not in wings[w]: wings[w][f] = {'customer_name': r['customer_name'], 'items': []}
+            wings[w][f]['items'].append(r)
+        lines_out = [f"Delivery Export — {d}", "="*40]
+        for wing, flats in wings.items():
+            lines_out.append(f"Wing {wing}")
+            lines_out.append("-"*20)
+            for flat, info in flats.items():
+                items = info['items']
+                if all(i['status'] == 'skipped' for i in items):
+                    lines_out.append(f"  {flat}  Skipped")
+                else:
+                    milk_strs = [f"{i['product_name']} {i['qty_delivered'] or i['qty_ordered']}L" for i in items if i['status'] != 'skipped']
+                    lines_out.append(f"  {flat}  {', '.join(milk_strs)}")
+            lines_out.append("")
+        export_text = '\n'.join(lines_out)
+        return jsonify({'success': True, 'data': rows, 'text': export_text, 'date': d})
 
     if action == 'stats':
         d = request.args.get('date', today())
