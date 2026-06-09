@@ -12,7 +12,8 @@ app = Flask(__name__, static_folder='static')
 app.secret_key = secrets.token_hex(32)
 app.config['SESSION_TYPE'] = 'filesystem'
 
-DB_PATH = '/home/claude/milkroute_live/db/milkroute.db'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'milkroute.db')
 
 # ─────────────────────────────────────────────────────────
 # DATABASE
@@ -1021,7 +1022,7 @@ def admin_reports():
 # MAIN
 # ─────────────────────────────────────────────────────────
 if __name__ == '__main__':
-    os.makedirs('/home/claude/milkroute_live/db', exist_ok=True)
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     with app.app_context():
         db = get_db()
         db.executescript(SCHEMA)
