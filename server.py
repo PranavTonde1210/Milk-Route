@@ -12,7 +12,7 @@ app = Flask(__name__, static_folder='static')
 app.secret_key = secrets.token_hex(32)
 app.config['SESSION_TYPE'] = 'filesystem'
 
-DB_PATH = 'milkroute.db'
+DB_PATH = '/home/claude/milkroute_live/db/milkroute.db'
 
 # ─────────────────────────────────────────────────────────
 # DATABASE
